@@ -1,0 +1,20 @@
+{
+  "appenders": {
+    "default": {
+      "type": "dateFile",
+      "filename": "logs/access.log",
+      "pattern": "-yyyy-MM-dd",
+      "keepFileExt": true,
+      "alwaysIncludePattern": true,
+      "numBackups": 14
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "default"
+      ],
+      "level": "info"
+    }
+  }
+}

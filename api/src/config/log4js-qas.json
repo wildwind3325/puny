@@ -1,0 +1,18 @@
+{
+  "appenders": {
+    "default": {
+      "type": "file",
+      "filename": "logs/access.log",
+      "maxLogSize": 10485760,
+      "numBackups": 3
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "default"
+      ],
+      "level": "info"
+    }
+  }
+}

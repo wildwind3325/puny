@@ -1,0 +1,18 @@
+{
+  "name": "puny",
+  "script": "./bin/www",
+  "cwd": "./",
+  "watch": [
+    "bin",
+    "src"
+  ],
+  "watch_options": {
+    "followSymlinks": false
+  },
+  "error_file": "./logs/app-err.log",
+  "out_file": "./logs/app-out.log",
+  "env": {
+    "NODE_ENV": "PRD",
+    "PORT": 8002
+  }
+}

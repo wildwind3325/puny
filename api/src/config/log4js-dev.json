@@ -1,0 +1,15 @@
+{
+  "appenders": {
+    "default": {
+      "type": "stdout"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "default"
+      ],
+      "level": "info"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "default": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "username": "admin",
+    "password": "admin",
+    "database": "dlmm",
+    "dialect": "mysql",
+    "timezone": "+08:00",
+    "logging": false,
+    "pool": {
+      "max": 50,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  }
+}
