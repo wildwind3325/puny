@@ -13,6 +13,6 @@
   "out_file": "./logs/app-out.log",
   "env": {
     "NODE_ENV": "PRD",
-    "PORT": 8002
+    "PORT": 8081
   }
 }
