@@ -112,9 +112,11 @@ var zip = {
       }
     }
     return {
-      success: true,
-      folders: tree[parent].folders,
-      files: tree[parent].files
+      code: 0,
+      data: {
+        folders: tree[parent].folders,
+        files: tree[parent].files
+      }
     };
   },
   load(entryName) {

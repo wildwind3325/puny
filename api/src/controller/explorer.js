@@ -11,9 +11,9 @@ class ExplorerController {
       init: {},
       refresh: {},
       image: {},
-      media: {},
       zip_open: {},
       zip_close: {},
+      play: {},
       exec: {}
     };
     this.seperator = process.platform.startsWith('win') ? '\\' : '/';
@@ -66,6 +66,88 @@ class ExplorerController {
         files: files
       }
     });
+  }
+
+  async image(req, res, data) {
+    let ext = file.getExtension(data.file);
+    if (ext === '.frames') {
+      let ugoira = await zip.loadUgoira(file.genPath(data.dirRoute) + data.file);
+      res.send({
+        code: 0,
+        data: ugoira
+      });
+      return;
+    }
+    let buffer;
+    if (data.zipFile) {
+      let route = '';
+      for (let i = 0; i < data.zipRoute.length; i++) {
+        route += data.zipRoute[i] + '/';
+      }
+      buffer = await zip.load(route + data.file);
+    } else {
+      buffer = fs.readFileSync(file.genPath(data.dirRoute) + data.file);
+    }
+    let header = '';
+    for (let i = 0; i < 6; i++) {
+      if (buffer.length <= i) break;
+      header += String.fromCharCode(buffer[i]);
+    }
+    if (header === 'GIF89a') {
+      let reader = new omggif.GifReader(buffer);
+      if (reader.numFrames() > 1) {
+        let images = [];
+        for (let i = 0; i < reader.numFrames(); i++) {
+          let info = reader.frameInfo(i);
+          let data = new Uint8ClampedArray(info.width * info.height * 4);
+          reader.decodeAndBlitFrameRGBA(i, data);
+          images.push({
+            data: Buffer.from(data).toString('base64'),
+            delay: (info.delay * 10) || 50,
+            width: info.width,
+            height: info.height
+          });
+        }
+        res.send({
+          code: 0,
+          data: {
+            gif: true,
+            images: images
+          }
+        });
+        return;
+      }
+    }
+    res.send({
+      code: 0,
+      data: {
+        gif: false,
+        image: 'data:' + file.getImageMime(data.file) + ';base64,' + Buffer.from(buffer).toString('base64')
+      }
+    });
+  }
+
+  async zip_open(req, res, data) {
+    await zip.open(req.body.file);
+    res.send({ code: 0 });
+  }
+
+  zip_close(req, res, data) {
+    zip.close();
+    res.send({ code: 0 });
+  }
+
+  play(req, res, data) {
+    if (file.isMedia(data.file)) {
+      res.sendFile(data.file);
+    } else {
+      res.status(403).end();
+    }
+  }
+
+  exec(req, res, data) {
+    cp.exec(data.file);
+    res.send({ code: 0 });
   }
 }
 
