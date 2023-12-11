@@ -1,13 +1,14 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
-var cookieParser = require('cookie-parser');
+var session = require('express-session');
 var log4js = require('log4js');
 var Sequelize = require('sequelize');
 
 require('./util/enhance');
-var router = require('./router');
+var config = require('./config/config');
 var cm = require('./dao/cm');
+var router = require('./router');
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'DEV';
@@ -28,7 +29,17 @@ var server = http.createServer(app);
 app.use(log4js.connectLogger(log4js.getLogger(), { level: 'info' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: false }));
-app.use(cookieParser());
+app.use(session({
+  name: config.cookie.name,
+  secret: config.cookie.secret,
+  resave: false,
+  rolling: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 3600 * 24,
+    sameSite: 'lax'
+  }
+}));
 
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api', router);
