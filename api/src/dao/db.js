@@ -223,6 +223,21 @@ class DB {
   }
 
   /**
+   * 执行单行查询操作
+   * @param {string} sql 查询语句
+   * @param {any} params 参数
+   * @returns {Promise<any>} 单条查询记录
+   */
+  async findOne(sql, params) {
+    let result = await this.execute(sql, {
+      type: QueryTypes.SELECT,
+      replacements: params
+    });
+    if (result.length > 0) return result[0];
+    return null;
+  }
+
+  /**
    * 执行单表查询操作
    * @param {string} table 数据表名
    * @param {Array} fields 查询列
