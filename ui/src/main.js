@@ -1,16 +1,11 @@
 import { createApp } from 'vue';
 import App from './App.vue';
+import router from './router/index';
 import './util/enhance';
-import ElementPlus from 'element-plus';
-import zh from 'element-plus/dist/locale/zh-cn.mjs';
-import 'element-plus/dist/index.css';
-import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+import Vant from 'vant';
+import 'vant/lib/index.css';
 import './main.css';
 
 const app = createApp(App);
 
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component);
-}
-
-app.use(ElementPlus, { locale: zh }).mount('#app');
+app.use(router).use(Vant).mount('#app');
