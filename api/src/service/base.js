@@ -1,8 +1,9 @@
 class BaseService {
   constructor() {
+    this.safeModules = ['login'];
   }
 
-  preProcess(req) {
+  preProcess(req, anonymous) {
     let data = Object.assign({}, req.query, req.body);
     let module = data._module;
     let action = data._action;
@@ -11,6 +12,14 @@ class BaseService {
         code: 1,
         msg: '错误的请求'
       };
+    }
+    if (anonymous !== true && this.safeModules.indexOf(module) < 0) {
+      if (!req.session.user) {
+        return {
+          code: -1,
+          msg: '尚未登录或登录已超时'
+        };
+      }
     }
     module = module.replace(/\./g, '/');
     let controller, method;
