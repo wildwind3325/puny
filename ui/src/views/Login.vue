@@ -1,6 +1,6 @@
 <template>
   <div style="padding: 10px 16px;">
-    <span class="title">系统登录</span>
+    <span class="header">用户登录</span>
   </div>
   <van-cell-group inset>
     <van-field v-model="account" label="账号" />
@@ -58,7 +58,7 @@ export default {
 </script>
 
 <style scoped>
-.title {
+.header {
   display: block;
   text-align: center;
   height: 40px;
