@@ -5,6 +5,7 @@
   </van-grid>
   <div class="title">系统</div>
   <van-grid direction="horizontal" :column-num="3">
+    <van-grid-item icon="setting-o" icon-color="orange" text="配置" />
     <van-grid-item icon="close" icon-color="red" text="注销" @click="logout" />
   </van-grid>
 </template>
