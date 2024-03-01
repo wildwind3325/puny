@@ -23,3 +23,12 @@ body {
   line-height: 16px;
   padding: 16px;
 }
+
+.overlay {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+}
