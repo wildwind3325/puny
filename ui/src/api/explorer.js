@@ -1,7 +1,7 @@
 class Explorer {
   constructor() {
     this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
+    this.context = this.canvas.getContext('2d');
     this.i_exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
     this.m_exts = ['.mp3', '.mp4', '.webm', '.ogg', '.wav'];
   }
@@ -20,7 +20,7 @@ class Explorer {
   /** @type {HTMLCanvasElement} */
   canvas = null;
   /** @type {CanvasRenderingContext2D} */
-  ctx = null;
+  context = null;
   playing = true;
   forward = true;
   total = 0;
@@ -118,7 +118,7 @@ class Explorer {
         let data = Buffer.from(list[i].data, 'base64');
         this.canvas.width = list[i].width;
         this.canvas.height = list[i].height;
-        this.ctx.putImageData(new ImageData(Uint8ClampedArray.from(data), list[i].width, list[i].height), 0, 0);
+        this.context.putImageData(new ImageData(Uint8ClampedArray.from(data), list[i].width, list[i].height), 0, 0);
         let image = new Image();
         image.index = i;
         this.images.push(image);

@@ -68,6 +68,45 @@ class ExplorerController {
     });
   }
 
+  create(req, res, data) {
+    try {
+      fs.mkdirSync(data.dir);
+      res.send({ code: 0 });
+    } catch (err) {
+      res.send({
+        code: 1,
+        msg: err.message
+      });
+    }
+  }
+
+  rename(req, res, data) {
+    try {
+      fs.renameSync(data.dir + data.oldValue, data.dir + data.newValue);
+      res.send({ code: 0 });
+    } catch (err) {
+      res.send({
+        code: 1,
+        msg: err.message
+      });
+    }
+  }
+
+  remove(req, res, data) {
+    try {
+      fs.rmSync(data.path, {
+        recursive: true,
+        force: true
+      });
+      res.send({ code: 0 });
+    } catch (err) {
+      res.send({
+        code: 1,
+        msg: err.message
+      });
+    }
+  }
+
   async image(req, res, data) {
     let ext = file.getExtension(data.file);
     if (ext === '.frames') {

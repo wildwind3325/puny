@@ -3,8 +3,9 @@
   <div style="height: 8px;"></div>
   <div style="padding: 0px 16px;">
     <van-space>
+      <van-button type="primary" size="small" @click="create">创建</van-button>
       <van-button type="primary" size="small" @click="up">上一级</van-button>
-      <van-button type="primary" size="small" @click="refresh">刷新</van-button>
+      <van-button type="success" size="small" @click="refresh">刷新</van-button>
       <van-button type="warning" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
     </van-space>
   </div>
@@ -15,30 +16,23 @@
       <div class="list-item-name">{{ item.name }}</div>
       <div style="height: 8px;"></div>
       <div>
+        <van-button v-show="operatable()" type="default" size="small" :icon="item.checked ? 'success' : 'plus'"
+          @click="item.checked = !item.checked" style="margin-right: 5px;"></van-button>
         <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
-        <van-button type="primary" size="small" style="margin-left: 5px;">预览</van-button>
+        <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;">预览</van-button>
+        <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;">播放</van-button>
+        <van-button v-show="operatable()" type="warning" size="small" style="margin-left: 5px;"
+          @click="rename(index)">重命名</van-button>
+        <van-button v-show="operatable()" type="danger" size="small" style="margin-left: 5px;"
+          @click="remove(index)">删除</van-button>
       </div>
-      <div style="height: 8px;"></div>
-      <div style="display: flex;">
+      <div v-show="item.fsize" style="height: 8px;"></div>
+      <div v-show="item.fsize" style="display: flex;">
         <div class="list-item-info" style="flex-grow: 1;">{{ item.fsize }}</div>
         <div class="list-item-info">{{ item.ctime }}</div>
       </div>
       <div style="height: 8px; border-bottom: 1px solid #ebedf0;"></div>
     </div>
-    <van-card v-for="(item, index) in items" :key="index" :title="item.name">
-      <template #desc>
-        <div style="padding-top: 10px;">
-          <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
-          <van-button type="primary" size="small" style="margin-left: 5px;">预览</van-button>
-        </div>
-      </template>
-      <template #price>
-        <div>{{ item.fsize }}</div>
-      </template>
-      <template #num>
-        <div>{{ item.ctime }}</div>
-      </template>
-    </van-card>
   </div>
   <div v-show="viewMode === '预览'">
     <div style="padding: 0px 16px;">
@@ -141,13 +135,9 @@ export default {
             newZipFile = item.name;
           } else {
             let file = explorer.getPath() + item.name;
-            if (explorer.isMedia(item.name)) {
-              // 播放视频
-            } else {
-              try {
-                await request.post('/api/common?_module=explorer&_action=exec', { file: file });
-              } catch (err) { }
-            }
+            try {
+              await request.post('/api/common?_module=explorer&_action=exec', { file: file });
+            } catch (err) { }
             return;
           }
         }
@@ -196,8 +186,89 @@ export default {
         common.notify('danger', '浏览失败：' + err.message);
       }
     },
+    async create() {
+      if (explorer.zipFile || (this.path === '' && explorer.seperator === '\\')) return;
+      let name = window.prompt('请输入名称：');
+      if (!name) return;
+      try {
+        let res = await request.post('/api/common?_module=explorer&_action=create', { dir: explorer.getPath() + name });
+        if (res.data.code !== 0) {
+          common.notify('danger', '创建失败：' + res.data.msg);
+          return;
+        }
+        explorer.folders.push(name);
+        this.items.splice(explorer.folders.length - 1, 0, {
+          name: '[' + name + ']',
+          size: 0,
+          fsize: '',
+          ctime: ''
+        });
+      } catch (err) {
+        common.notify('danger', '创建失败：' + err.message);
+      }
+    },
     up() {
       this.refresh('..');
+    },
+    operatable() {
+      return !explorer.zipFile && !(this.path === '' && explorer.seperator === '\\');
+    },
+    canPreview(item) {
+      return item.fsize && explorer.isImage(item.name);
+    },
+    canPlay(item) {
+      return item.fsize && explorer.isMedia(item.name);
+    },
+    async rename(index) {
+      if (!this.operatable()) return;
+      let oldValue = index < explorer.folders.length ? explorer.folders[index] : this.items[index].name;
+      let newValue = window.prompt('请输入名称：', oldValue);
+      if (!newValue) return;
+      try {
+        let res = await request.post('/api/common?_module=explorer&_action=rename', {
+          dir: explorer.getPath(),
+          oldValue: oldValue,
+          newValue: newValue
+        });
+        if (res.data.code !== 0) {
+          common.notify('danger', '重命名失败：' + res.data.msg);
+          return;
+        }
+        if (index < explorer.folders.length) {
+          explorer.folders[index] = newValue;
+          this.items[index].name = '[' + newValue + ']';
+        } else {
+          explorer.files[index - explorer.folders.length].name = newValue;
+          this.items[index].name = newValue;
+        }
+        let item = this.items[index];
+        this.items.splice(index, 1, JSON.parse(JSON.stringify(item)));
+      } catch (err) {
+        common.notify('danger', '重命名失败：' + err.message);
+      }
+    },
+    async remove(index) {
+      if (!this.operatable()) return;
+      let result = await common.confirm('确认', '是否删除该项目？');
+      if (!result) return;
+      try {
+        let name = index < explorer.folders.length ? explorer.folders[index] : this.items[index].name;
+        let res = await request.post('/api/common?_module=explorer&_action=remove', {
+          path: explorer.getPath() + name
+        });
+        if (res.data.code !== 0) {
+          common.notify('danger', '删除失败：' + res.data.msg);
+          return;
+        }
+        if (index < explorer.folders.length) {
+          explorer.folders.splice(index, 1);
+        } else {
+          explorer.files.splice(index - explorer.folders.length, 1);
+        }
+        this.items.splice(index, 1);
+      } catch (err) {
+        common.notify('danger', '删除失败：' + err.message);
+      }
     },
     switchViewMode() {
       if (this.viewMode === '列表') {
