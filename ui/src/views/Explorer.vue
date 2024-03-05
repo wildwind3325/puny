@@ -3,8 +3,11 @@
   <div style="height: 8px;"></div>
   <div style="padding: 0px 16px;">
     <van-space>
-      <van-button type="primary" size="small" @click="create">创建</van-button>
       <van-button type="primary" size="small" @click="up">上一级</van-button>
+      <van-button type="primary" size="small" @click="create">创建</van-button>
+      <van-button type="success" size="small" @click="copy">复制</van-button>
+      <van-button type="warning" size="small" @click="cut">剪切</van-button>
+      <van-button type="primary" size="small" @click="paste">粘贴</van-button>
       <van-button type="success" size="small" @click="refresh">刷新</van-button>
       <van-button type="warning" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
     </van-space>
@@ -13,7 +16,7 @@
   <div v-show="viewMode === '列表'" class="list-container">
     <div v-for="(item, index) in items" :key="index" class="list-item">
       <div style="height: 8px;"></div>
-      <div class="list-item-name">{{ item.name }}</div>
+      <div class="list-item-name">{{ item.fsize ? item.name : '[' + item.name + ']' }}</div>
       <div style="height: 8px;"></div>
       <div>
         <van-button v-show="operatable()" type="default" size="small" :icon="item.checked ? 'success' : 'plus'"
@@ -113,12 +116,12 @@ export default {
         if (explorer.zipFile) {
           if (target < explorer.folders.length) {
             newZipRoute = explorer.zipRoute.slice(0);
-            newZipRoute.push(explorer.folders[target]);
+            newZipRoute.push(item.name);
           } else { return; }
         } else {
           if (target < explorer.folders.length) {
             newDirRoute = explorer.dirRoute.slice(0);
-            newDirRoute.push(explorer.folders[target]);
+            newDirRoute.push(item.name);
           } else if (explorer.isZip(item.name)) {
             try {
               let zipRes = await request.post('/api/common?_module=explorer&_action=zip_open', {
@@ -172,7 +175,7 @@ export default {
         this.items = [];
         for (let i = 0; i < explorer.folders.length; i++) {
           this.items.push({
-            name: '[' + explorer.folders[i] + ']',
+            name: explorer.folders[i],
             size: 0,
             fsize: '',
             ctime: ''
@@ -198,13 +201,69 @@ export default {
         }
         explorer.folders.push(name);
         this.items.splice(explorer.folders.length - 1, 0, {
-          name: '[' + name + ']',
+          name: name,
           size: 0,
           fsize: '',
           ctime: ''
         });
       } catch (err) {
         common.notify('danger', '创建失败：' + err.message);
+      }
+    },
+    setClipData(action) {
+      if (!this.operatable()) return;
+      let data = {
+        action: action,
+        dir: explorer.getPath(),
+        list: []
+      };
+      for (let i = 0; i < this.items.length; i++) {
+        if (this.items[i].checked) {
+          data.list.push({
+            type: this.items[i].fsize ? 'file' : 'folder',
+            name: this.items[i].name
+          });
+        }
+      }
+      if (data.list.length === 0) {
+        common.notify('warning', '未选择任何项目');
+        return;
+      }
+      localStorage.setItem('clipData', JSON.stringify(data));
+    },
+    copy() {
+      this.setClipData('copy');
+    },
+    cut() {
+      this.setClipData('cut');
+    },
+    async paste() {
+      if (!this.operatable()) return;
+      let clipData = localStorage.getItem('clipData');
+      if (!clipData) {
+        common.notify('warning', '剪贴板为空');
+        return;
+      }
+      let data = JSON.parse(clipData);
+      if (!data.action || data.list.length === 0) {
+        common.notify('warning', '剪贴板为空');
+        return;
+      }
+      if (explorer.getPath() === data.dir) {
+        common.notify('warning', '源路径和目标路径相同');
+        return;
+      }
+      data.target = explorer.getPath();
+      try {
+        let res = await request.post('/api/common?_module=explorer&_action=clipboard', data);
+        if (res.data.code !== 0) {
+          common.notify('danger', '粘贴失败：' + res.data.msg);
+          return;
+        }
+        common.notify('success', '粘贴完成');
+        localStorage.removeItem('clipData');
+      } catch (err) {
+        common.notify('danger', '粘贴失败：' + err.message);
       }
     },
     up() {
@@ -221,7 +280,7 @@ export default {
     },
     async rename(index) {
       if (!this.operatable()) return;
-      let oldValue = index < explorer.folders.length ? explorer.folders[index] : this.items[index].name;
+      let oldValue = this.items[index].name;
       let newValue = window.prompt('请输入名称：', oldValue);
       if (!newValue) return;
       try {
@@ -236,11 +295,10 @@ export default {
         }
         if (index < explorer.folders.length) {
           explorer.folders[index] = newValue;
-          this.items[index].name = '[' + newValue + ']';
         } else {
           explorer.files[index - explorer.folders.length].name = newValue;
-          this.items[index].name = newValue;
         }
+        this.items[index].name = newValue;
         let item = this.items[index];
         this.items.splice(index, 1, JSON.parse(JSON.stringify(item)));
       } catch (err) {
@@ -252,9 +310,8 @@ export default {
       let result = await common.confirm('确认', '是否删除该项目？');
       if (!result) return;
       try {
-        let name = index < explorer.folders.length ? explorer.folders[index] : this.items[index].name;
         let res = await request.post('/api/common?_module=explorer&_action=remove', {
-          path: explorer.getPath() + name
+          path: explorer.getPath() + this.items[index].name
         });
         if (res.data.code !== 0) {
           common.notify('danger', '删除失败：' + res.data.msg);

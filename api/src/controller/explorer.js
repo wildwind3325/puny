@@ -80,6 +80,42 @@ class ExplorerController {
     }
   }
 
+  clipboard(req, res, data) {
+    try {
+      let list = data.list;
+      for (let i = 0; i < list.length; i++) {
+        if (data.action === 'copy') {
+          if (list[i].type === 'folder') {
+            fs.cpSync(data.dir + list[i].name, data.target + list[i].name, { recursive: true });
+          } else {
+            fs.copyFileSync(data.dir + list[i].name, data.target + list[i].name);
+          }
+        } else {
+          try {
+            fs.renameSync(data.dir + list[i].name, data.target + list[i].name);
+          } catch (err) {
+            if (list[i].type === 'folder') {
+              fs.cpSync(data.dir + list[i].name, data.target + list[i].name, { recursive: true });
+              fs.rmSync(data.dir + list[i].name, {
+                recursive: true,
+                force: true
+              });
+            } else {
+              fs.copyFileSync(data.dir + list[i].name, data.target + list[i].name);
+              fs.unlinkSync(data.dir + list[i].name);
+            }
+          }
+        }
+      }
+      res.send({ code: 0 });
+    } catch (err) {
+      res.send({
+        code: 1,
+        msg: err.message
+      });
+    }
+  }
+
   rename(req, res, data) {
     try {
       fs.renameSync(data.dir + data.oldValue, data.dir + data.newValue);
