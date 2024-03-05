@@ -40,7 +40,7 @@
   <div v-show="viewMode === '预览'">
     <div style="padding: 0px 16px;">
       <van-space>
-        <van-button type="warning" size="small">{{ scaleMode }}</van-button>
+        <van-button type="warning" size="small" @click="switchScaleMode">{{ scaleMode }}</van-button>
         <van-button type="success" size="small">上一张</van-button>
         <van-button type="default" size="small">0 / 0</van-button>
         <van-button type="success" size="small">下一张</van-button>
@@ -63,15 +63,14 @@ export default {
       path: '',
       items: [],
       scaleMode: '正常',
-      timer: null,
+      updateTimer: null,
+      paintTimer: null,
       canvasWidth: 100,
       canvasHeight: 100,
       context: null
     };
   },
   async mounted() {
-    this.canvasWidth = Math.floor(document.body.getBoundingClientRect().width);
-    this.canvasHeight = Math.floor(document.body.getBoundingClientRect().height) - 162;
     try {
       let res = await request.post('/api/common?_module=explorer&_action=init');
       if (res.data.code !== 0) {
@@ -79,15 +78,26 @@ export default {
         return;
       }
       explorer.seperator = res.data.data;
+      this.updatePath();
       await this.refresh();
+      this.canvasWidth = Math.floor(document.body.getBoundingClientRect().width);
+      this.canvasHeight = Math.floor(document.body.getBoundingClientRect().height) - 162;
+      this.context = this.$refs.canvas.getContext('2d');
+      explorer.dirty = true;
+      this.updateTimer = setInterval(this.update, 50);
+      this.paintTimer = setInterval(this.paint, 50);
     } catch (err) {
       common.notify('danger', '初始化失败：' + err.message);
     }
   },
   beforeDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+      this.updateTimer = null;
+    }
+    if (this.paintTimer) {
+      clearInterval(this.paintTimer);
+      this.paintTimer = null;
     }
   },
   methods: {
@@ -124,11 +134,11 @@ export default {
             newDirRoute.push(item.name);
           } else if (explorer.isZip(item.name)) {
             try {
-              let zipRes = await request.post('/api/common?_module=explorer&_action=zip_open', {
+              let res = await request.post('/api/common?_module=explorer&_action=zip_open', {
                 file: this.path + item.name
               });
-              if (zipRes.data.code !== 0) {
-                common.notify('danger', '打开压缩包失败：' + zipRes.data.msg);
+              if (res.data.code !== 0) {
+                common.notify('danger', '打开压缩包失败：' + res.data.msg);
                 return;
               }
             } catch (err) {
@@ -139,8 +149,13 @@ export default {
           } else {
             let file = explorer.getPath() + item.name;
             try {
-              await request.post('/api/common?_module=explorer&_action=exec', { file: file });
-            } catch (err) { }
+              let res = await request.post('/api/common?_module=explorer&_action=exec', { file: file });
+              if (res.data.code !== 0) {
+                common.notify('danger', '打开文件失败：' + res.data.msg);
+              }
+            } catch (err) {
+              common.notify('danger', '打开文件失败：' + err.message);
+            }
             return;
           }
         }
@@ -333,6 +348,33 @@ export default {
       } else {
         this.viewMode = '列表';
       }
+    },
+    switchScaleMode() {
+      if (this.scaleMode === '正常') {
+        this.scaleMode = '自动1';
+      } else if (this.scaleMode === '自动1') {
+        this.scaleMode = '自动2';
+      } else {
+        this.scaleMode = '正常';
+        explorer.scale = 100;
+      }
+      if (explorer.image) explorer.dirty = true;
+    },
+    update() {
+    },
+    paint() {
+      explorer.update(50);
+      if (!explorer.dirty) return;
+      explorer.dirty = false;
+      if (!explorer.image) {
+        this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+        return;
+      }
+      let image = explorer.image;
+      let width = this.canvasWidth, height = this.canvasHeight;
+      let rect = explorer.getPaintArea(this.scaleMode, width, height);
+      this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+      this.context.drawImage(image, 0, 0, image.width, image.height, ...rect);
     }
   }
 };

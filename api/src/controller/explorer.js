@@ -4,6 +4,7 @@ var fs = require('fs');
 var omggif = require('../api/omggif');
 var file = require('../api/file');
 var zip = require('../api/zip');
+var util = require('../util/util');
 
 class ExplorerController {
   constructor() {
@@ -221,8 +222,15 @@ class ExplorerController {
   }
 
   exec(req, res, data) {
-    cp.exec(data.file);
-    res.send({ code: 0 });
+    if (util.getIP(req) !== '127.0.0.1') {
+      res.send({
+        code: 1,
+        msg: '仅支持在本地打开文件'
+      });
+    } else {
+      cp.exec(data.file);
+      res.send({ code: 0 });
+    }
   }
 }
 

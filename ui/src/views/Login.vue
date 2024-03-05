@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 10px 16px;">
+  <div style="padding: 50px 16px 10px 16px;">
     <span class="header">用户登录</span>
   </div>
   <van-cell-group inset>
@@ -39,6 +39,7 @@ export default {
         return;
       }
       try {
+        let target = localStorage.getItem('target_uri') || '/home';
         let res = await request.post('/api/common?_module=login&_action=login', {
           account: this.account,
           password: this.password
@@ -48,7 +49,8 @@ export default {
           return;
         }
         localStorage.setItem('account', this.account);
-        this.$router.replace('/home');
+        localStorage.removeItem('target_uri');
+        this.$router.replace(target);
       } catch (err) {
         common.notify('danger', '登录失败：' + err.message);
       }

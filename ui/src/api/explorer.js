@@ -230,7 +230,7 @@ class Explorer {
   getPaintArea(mode, width, height) {
     let x = 0, y = 0, w = this.image.width, h = this.image.height;
     let iw = this.image.width, ih = this.image.height;
-    if (mode === 'auto1') {
+    if (mode === '自动1') {
       if (iw > width || ih > height) {
         if (width * ih > height * iw) {
           w = Math.floor(iw * height / ih);
@@ -247,7 +247,7 @@ class Explorer {
       if (height > h) {
         y = Math.floor((height - h) / 2);
       }
-    } else if (mode === 'auto2') {
+    } else if (mode === '自动2') {
       if (iw > width) {
         w = width;
         h = Math.floor(ih * width / iw);
