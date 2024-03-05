@@ -63,11 +63,13 @@ export default {
       path: '',
       items: [],
       scaleMode: '正常',
-      updateTimer: null,
-      paintTimer: null,
       canvasWidth: 100,
       canvasHeight: 100,
-      context: null
+      context: null,
+      targetItem: '',
+      fetching: false,
+      updateTimer: null,
+      paintTimer: null
     };
   },
   async mounted() {
