@@ -362,7 +362,35 @@ export default {
       }
       if (explorer.image) explorer.dirty = true;
     },
-    update() {
+    async update() {
+      if (this.fetching || !this.targetItem) return;
+      let current = this.targetItem;
+      try {
+        this.fetching = true;
+        let res = await request.post('/api/common?_module=explorer&_action=image', {
+          dirRoute: explorer.dirRoute,
+          zipFile: explorer.zipFile,
+          zipRoute: explorer.zipRoute,
+          file: current
+        });
+        if (res.data.code === 0) {
+          if (res.data.ugoira) {
+            await explorer.setUgoira(res.data.ugoira);
+          } else if (res.data.images) {
+            await explorer.setAnime(res.data.images);
+          } else {
+            await explorer.setImage(res.data.image);
+          }
+          explorer.resetLocation();
+        } else {
+          explorer.clear(true);
+        }
+      } catch (err) {
+        common.notify('', '获取图片失败：' + err.message);
+      } finally {
+        if (current == this.targetItem) this.targetItem = '';
+        this.fetching = false;
+      }
     },
     paint() {
       explorer.update(50);
