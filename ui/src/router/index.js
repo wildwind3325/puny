@@ -16,6 +16,10 @@ const routes = [{
   name: 'Explorer',
   component: () => import('../views/Explorer.vue')
 }, {
+  path: '/player',
+  name: 'Player',
+  component: () => import('../views/Player.vue')
+}, {
   path: '/:pathMatch(.*)',
   name: 'NotFound',
   component: NotFound

@@ -7,7 +7,7 @@ class BaseService {
     let data = Object.assign({}, req.query, req.body);
     let module = data._module;
     let action = data._action;
-    if (!/^[a-zA-Z0-9\.]+$/.test(module) || !/^[a-zA-Z0-9]+$/.test(action)) {
+    if (!/^[a-zA-Z0-9\.]+$/.test(module) || !/^[a-zA-Z0-9_]+$/.test(action)) {
       return {
         code: 1,
         msg: '错误的请求'

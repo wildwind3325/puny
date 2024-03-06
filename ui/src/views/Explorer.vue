@@ -24,7 +24,8 @@
         <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
         <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;"
           @click="toPointer(item)">预览</van-button>
-        <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;">播放</van-button>
+        <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;"
+          @click="play(item)">播放</van-button>
         <van-button v-show="operatable()" type="warning" size="small" style="margin-left: 5px;"
           @click="rename(index)">重命名</van-button>
         <van-button v-show="operatable()" type="danger" size="small" style="margin-left: 5px;"
@@ -50,8 +51,8 @@
         <span>{{ current }}</span>
       </div>
     </div>
-    <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @mousedown="startMove"
-      @mousemove="doMove" @mouseup="stopMove" @mouseout="stopMove"></canvas>
+    <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="startMove"
+      @touchmove="doMove" @touchend="stopMove"></canvas>
   </div>
 </template>
 
@@ -307,7 +308,10 @@ export default {
       return item.fsize && explorer.isImage(item.name);
     },
     canPlay(item) {
-      return item.fsize && explorer.isMedia(item.name);
+      return item.fsize && explorer.isMedia(item.name) && !explorer.zipFile;
+    },
+    play(item) {
+      window.open('/#/player?file=' + explorer.getPath() + item.name, '_blank');
     },
     async rename(index) {
       if (!this.operatable()) return;
@@ -418,6 +422,31 @@ export default {
         }
       }
       explorer.clear(true);
+    },
+    startMove(event) {
+      if (!explorer.image || this.scaleMode === '自动1') return;
+      explorer.x0 = event.touches[0].clientX;
+      explorer.y0 = event.touches[0].clientY;
+      explorer.moving = true;
+    },
+    doMove(event) {
+      event.preventDefault();
+      if (!explorer.image || !explorer.moving || this.scaleMode === '自动1') return;
+      explorer.x1 = event.touches[0].clientX;
+      explorer.y1 = event.touches[0].clientY;
+      explorer.dirty = true;
+    },
+    stopMove(event) {
+      if (!explorer.image || !explorer.moving || this.scaleMode === '自动1') return;
+      let width = this.canvasWidth, height = this.canvasHeight;
+      let rect = explorer.getPaintArea(this.scaleMode, width, height);
+      explorer.ox = rect[0] > 0 ? 0 : rect[0];
+      explorer.oy = rect[1] > 0 ? 0 : rect[1];
+      explorer.x0 = 0;
+      explorer.y0 = 0;
+      explorer.x1 = 0;
+      explorer.y1 = 0;
+      explorer.moving = false;
     },
     async update() {
       if (this.fetching || !this.targetItem) return;
