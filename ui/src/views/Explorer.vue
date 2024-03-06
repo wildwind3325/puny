@@ -51,8 +51,9 @@
         <span>{{ current }}</span>
       </div>
     </div>
-    <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="startMove"
-      @touchmove="doMove" @touchend="stopMove"></canvas>
+    <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="touchStart"
+      @touchmove="touchMove" @touchend="touchEnd" @mousedown="mouseStart" @mousemove="mouseMove" @mouseup="mouseEnd"
+      @mouseout="mouseEnd"></canvas>
   </div>
 </template>
 
@@ -423,20 +424,44 @@ export default {
       }
       explorer.clear(true);
     },
-    startMove(event) {
+    touchStart(event) {
       if (!explorer.image || this.scaleMode === '自动1') return;
       explorer.x0 = event.touches[0].clientX;
       explorer.y0 = event.touches[0].clientY;
       explorer.moving = true;
     },
-    doMove(event) {
+    touchMove(event) {
       event.preventDefault();
       if (!explorer.image || !explorer.moving || this.scaleMode === '自动1') return;
       explorer.x1 = event.touches[0].clientX;
       explorer.y1 = event.touches[0].clientY;
       explorer.dirty = true;
     },
-    stopMove(event) {
+    touchEnd(event) {
+      if (!explorer.image || !explorer.moving || this.scaleMode === '自动1') return;
+      let width = this.canvasWidth, height = this.canvasHeight;
+      let rect = explorer.getPaintArea(this.scaleMode, width, height);
+      explorer.ox = rect[0] > 0 ? 0 : rect[0];
+      explorer.oy = rect[1] > 0 ? 0 : rect[1];
+      explorer.x0 = 0;
+      explorer.y0 = 0;
+      explorer.x1 = 0;
+      explorer.y1 = 0;
+      explorer.moving = false;
+    },
+    mouseStart(event) {
+      if (!explorer.image || this.scaleMode === '自动1') return;
+      explorer.x0 = event.clientX;
+      explorer.y0 = event.clientY;
+      explorer.moving = true;
+    },
+    mouseMove(event) {
+      if (!explorer.image || !explorer.moving || this.scaleMode === '自动1') return;
+      explorer.x1 = event.clientX;
+      explorer.y1 = event.clientY;
+      explorer.dirty = true;
+    },
+    mouseEnd(event) {
       if (!explorer.image || !explorer.moving || this.scaleMode === '自动1') return;
       let width = this.canvasWidth, height = this.canvasHeight;
       let rect = explorer.getPaintArea(this.scaleMode, width, height);
@@ -472,7 +497,6 @@ export default {
           explorer.clear(true);
         }
       } catch (err) {
-        console.log(err);
         common.notify('danger', '获取图片失败：' + err.message);
       } finally {
         if (this.current == this.targetItem) this.targetItem = '';
