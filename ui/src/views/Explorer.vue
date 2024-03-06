@@ -20,9 +20,10 @@
       <div style="height: 8px;"></div>
       <div>
         <van-button v-show="operatable()" type="default" size="small" :icon="item.checked ? 'success' : 'plus'"
-          @click="item.checked = !item.checked" style="margin-right: 5px;"></van-button>
+          style="margin-right: 5px;" @click="item.checked = !item.checked"></van-button>
         <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
-        <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;">预览</van-button>
+        <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;"
+          @click="toPointer(item)">预览</van-button>
         <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;">播放</van-button>
         <van-button v-show="operatable()" type="warning" size="small" style="margin-left: 5px;"
           @click="rename(index)">重命名</van-button>
@@ -38,13 +39,16 @@
     </div>
   </div>
   <div v-show="viewMode === '预览'">
-    <div style="padding: 0px 16px;">
+    <div style="padding: 0px 16px; position: relative;">
       <van-space>
         <van-button type="warning" size="small" @click="switchScaleMode">{{ scaleMode }}</van-button>
-        <van-button type="success" size="small">上一张</van-button>
-        <van-button type="default" size="small">0 / 0</van-button>
-        <van-button type="success" size="small">下一张</van-button>
+        <van-button type="success" size="small" @click="toPrev">上一张</van-button>
+        <van-button type="default" size="small">{{ pointer + ' / ' + images.length }}</van-button>
+        <van-button type="success" size="small" @click="toNext">下一张</van-button>
       </van-space>
+      <div style="line-height: 32px; color: #969799; position: absolute; right: 16px; top: 0px;">
+        <span>{{ current }}</span>
+      </div>
     </div>
     <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @mousedown="startMove"
       @mousemove="doMove" @mouseup="stopMove" @mouseout="stopMove"></canvas>
@@ -66,6 +70,9 @@ export default {
       canvasWidth: 100,
       canvasHeight: 100,
       context: null,
+      images: [],
+      pointer: 0,
+      current: '',
       targetItem: '',
       fetching: false,
       updateTimer: null,
@@ -198,8 +205,15 @@ export default {
             ctime: ''
           });
         }
+        this.images = [];
+        this.pointer = 0;
+        this.current = '';
+        this.targetItem = '';
         for (let i = 0; i < explorer.files.length; i++) {
           this.items.push(explorer.files[i]);
+          if (explorer.isImage(explorer.files[i].name) || explorer.isUgoira(explorer.files[i].name)) {
+            this.images.push(explorer.files[i].name);
+          }
         }
         explorer.clear(true);
       } catch (err) {
@@ -314,6 +328,13 @@ export default {
           explorer.folders[index] = newValue;
         } else {
           explorer.files[index - explorer.folders.length].name = newValue;
+          for (let i = 0; i < this.images.length; i++) {
+            if (this.images[i] === oldValue) {
+              this.images[i] = newValue;
+              break;
+            }
+          }
+          if (this.current === oldValue) this.current = newValue;
         }
         this.items[index].name = newValue;
         let item = this.items[index];
@@ -338,6 +359,13 @@ export default {
           explorer.folders.splice(index, 1);
         } else {
           explorer.files.splice(index - explorer.folders.length, 1);
+          for (let i = 0; i < this.images.length; i++) {
+            if (this.images[i] === this.items[index].name) {
+              this.images.splice(i, 1);
+              break;
+            }
+          }
+          if (this.current === this.items[index].name) this.toPrev();
         }
         this.items.splice(index, 1);
       } catch (err) {
@@ -362,33 +390,63 @@ export default {
       }
       if (explorer.image) explorer.dirty = true;
     },
+    toPrev() {
+      if (this.pointer <= 0) return;
+      this.pointer--;
+      if (this.pointer === 0) {
+        this.current = '';
+        this.targetItem = '';
+      } else {
+        this.targetItem = this.images[this.pointer - 1];
+      }
+      explorer.clear(true);
+    },
+    toNext() {
+      if (this.pointer >= this.images.length) return;
+      this.pointer++;
+      this.targetItem = this.images[this.pointer - 1];
+      explorer.clear(true);
+    },
+    toPointer(item) {
+      this.viewMode = '预览';
+      if (this.current === item.name) return;
+      this.targetItem = item.name;
+      for (let i = 0; i < this.images.length; i++) {
+        if (this.images[i] === item.name) {
+          this.pointer = i + 1;
+          break;
+        }
+      }
+      explorer.clear(true);
+    },
     async update() {
       if (this.fetching || !this.targetItem) return;
-      let current = this.targetItem;
+      this.current = this.targetItem;
       try {
         this.fetching = true;
         let res = await request.post('/api/common?_module=explorer&_action=image', {
           dirRoute: explorer.dirRoute,
           zipFile: explorer.zipFile,
           zipRoute: explorer.zipRoute,
-          file: current
+          file: this.current
         });
         if (res.data.code === 0) {
-          if (res.data.ugoira) {
-            await explorer.setUgoira(res.data.ugoira);
-          } else if (res.data.images) {
-            await explorer.setAnime(res.data.images);
+          if (res.data.data.ugoira) {
+            await explorer.setUgoira(res.data.data.ugoira);
+          } else if (res.data.data.images) {
+            await explorer.setAnime(res.data.data.images);
           } else {
-            await explorer.setImage(res.data.image);
+            await explorer.setImage(res.data.data.image);
           }
           explorer.resetLocation();
         } else {
           explorer.clear(true);
         }
       } catch (err) {
-        common.notify('', '获取图片失败：' + err.message);
+        console.log(err);
+        common.notify('danger', '获取图片失败：' + err.message);
       } finally {
-        if (current == this.targetItem) this.targetItem = '';
+        if (this.current == this.targetItem) this.targetItem = '';
         this.fetching = false;
       }
     },

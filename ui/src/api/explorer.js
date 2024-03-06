@@ -115,7 +115,11 @@ class Explorer {
       this.current = 0;
       this.timer = 0;
       for (let i = 0; i < this.total; i++) {
-        let data = Buffer.from(list[i].data, 'base64');
+        let rawData = window.atob(list[i].data);
+        let data = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; i++) {
+          data[i] = rawData.charCodeAt(i);
+        }
         this.canvas.width = list[i].width;
         this.canvas.height = list[i].height;
         this.context.putImageData(new ImageData(Uint8ClampedArray.from(data), list[i].width, list[i].height), 0, 0);

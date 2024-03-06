@@ -150,7 +150,7 @@ class ExplorerController {
       let ugoira = await zip.loadUgoira(file.genPath(data.dirRoute) + data.file);
       res.send({
         code: 0,
-        data: ugoira
+        data: { ugoira: ugoira }
       });
       return;
     }
@@ -186,20 +186,14 @@ class ExplorerController {
         }
         res.send({
           code: 0,
-          data: {
-            gif: true,
-            images: images
-          }
+          data: { images: images }
         });
         return;
       }
     }
     res.send({
       code: 0,
-      data: {
-        gif: false,
-        image: 'data:' + file.getImageMime(data.file) + ';base64,' + Buffer.from(buffer).toString('base64')
-      }
+      data: { image: 'data:' + file.getImageMime(data.file) + ';base64,' + Buffer.from(buffer).toString('base64') }
     });
   }
 
