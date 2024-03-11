@@ -306,7 +306,7 @@ export default {
       return !explorer.zipFile && !(this.path === '' && explorer.seperator === '\\');
     },
     canPreview(item) {
-      return item.fsize && explorer.isImage(item.name);
+      return item.fsize && (explorer.isImage(item.name) || explorer.isUgoira(item.name));
     },
     canPlay(item) {
       return item.fsize && explorer.isMedia(item.name) && !explorer.zipFile;
