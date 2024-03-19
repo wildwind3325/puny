@@ -15,9 +15,9 @@ class DB {
     this.sep = '';
     switch (this.dialect) {
       case 'mysql':
-      case 'sqlite':
         this.sep = '`';
         break;
+      case 'sqlite':
       case 'mssql':
       case 'postgres':
         this.sep = '"';

@@ -20,7 +20,7 @@ class LoginController {
       return;
     }
     let db = new DB();
-    let user = await db.findOne('select * from `user` where `account` = :account and `password` = :password', {
+    let user = await db.findOne('select * from "user" where "account" = :account and "password" = :password', {
       account: data.account,
       password: util.md5(data.password).toUpperCase()
     });

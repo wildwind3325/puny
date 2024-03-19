@@ -20,6 +20,10 @@ const routes = [{
   name: 'Player',
   component: () => import('../views/Player.vue')
 }, {
+  path: '/note/forum',
+  name: 'NoteForum',
+  component: () => import('../views/note/Forum.vue')
+}, {
   path: '/:pathMatch(.*)',
   name: 'NotFound',
   component: NotFound

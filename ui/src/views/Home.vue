@@ -2,6 +2,7 @@
   <div class="title">基本</div>
   <van-grid direction="horizontal" :column-num="3">
     <van-grid-item icon="idcard" icon-color="blue" text="文件" to="/explorer" />
+    <van-grid-item icon="notes-o" icon-color="#1989fa" text="笔记" to="/note/forum" />
   </van-grid>
   <div class="title">系统</div>
   <van-grid direction="horizontal" :column-num="3">
