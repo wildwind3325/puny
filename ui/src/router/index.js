@@ -20,9 +20,14 @@ const routes = [{
   name: 'Player',
   component: () => import('../views/Player.vue')
 }, {
-  path: '/note/forum',
+  path: '/note/board',
+  name: 'NoteBoard',
+  component: () => import('../views/note/Board.vue')
+}, {
+  path: '/note/forum/:id',
   name: 'NoteForum',
-  component: () => import('../views/note/Forum.vue')
+  component: () => import('../views/note/Forum.vue'),
+  meta: { keepAlive: true }
 }, {
   path: '/:pathMatch(.*)',
   name: 'NotFound',
