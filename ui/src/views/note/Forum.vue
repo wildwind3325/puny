@@ -2,15 +2,21 @@
   <van-nav-bar :title="forum_name" left-arrow @click-left="$router.back()" />
   <div style="padding: 8px 16px;">
     <van-space>
-      <van-button type="primary" size="small" @click="create">创建</van-button>
+      <van-button type="primary" size="small" @click="create">新主题</van-button>
+      <van-button type="success" size="small" @click="query()">刷新</van-button>
     </van-space>
   </div>
   <van-pagination v-model="pageNumber" :total-items="total" mode="simple" @change="query" />
   <van-cell-group>
-    <van-cell v-for="(item, index) in list" :key="index" :title="item.title"
-      :value="item.created_at.substring(0, 10)" />
+    <van-swipe-cell v-for="(item, index) in list" :key="index">
+      <van-cell :border="false" :title="item.title" :value="item.created_at.substring(0, 10)"
+        @click="$router.push('/note/post/' + item.id)" />
+      <template #right>
+        <van-button type="danger" @click="remove(index)">删除</van-button>
+      </template>
+    </van-swipe-cell>
   </van-cell-group>
-  <Editor ref="editor" />
+  <Editor ref="editor" @post_add="onAdd" />
 </template>
 
 <script>
@@ -82,11 +88,14 @@ export default {
         content: ''
       });
     },
+    onAdd(post) {
+      this.list.unshift(post);
+    },
     async remove(index) {
       let result = await common.confirm('确认', '是否删除该项目？');
       if (!result) return;
       try {
-        let res = await request.post('/api/common?_module=note&_action=forum_remove', { id: this.list[index].id });
+        let res = await request.post('/api/common?_module=note&_action=post_remove', { id: this.list[index].id });
         if (res.data.code !== 0) {
           common.notify('danger', '操作失败：' + res.data.msg);
         } else {

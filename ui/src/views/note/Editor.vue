@@ -69,6 +69,7 @@ export default {
           common.notify('danger', '操作失败：' + res.data.msg);
         } else {
           this.show = false;
+          this.$emit(action, action === 'post_add' ? res.data.data : this.post);
           common.notify('success', '操作成功');
         }
       } catch (err) {

@@ -6,15 +6,14 @@
     </van-space>
   </div>
   <van-cell-group>
-    <van-cell v-for="(item, index) in list" :key="index">
-      <template #title>
-        <span class="link" @click="$router.push('/note/forum/' + item.id)">{{ item.name }}</span>
+    <van-swipe-cell v-for="(item, index) in list" :key="index">
+      <van-cell :border="false" :title="item.name" :value="item.created_at.substring(0, 10)"
+        @click="$router.push('/note/forum/' + item.id)" />
+      <template #right>
+        <van-button type="warning" @click="edit(item)">修改</van-button>
+        <van-button type="danger" @click="remove(index)">删除</van-button>
       </template>
-      <template #value>
-        <van-button type="warning" size="mini" @click="edit(item)">修改</van-button>
-        <van-button type="danger" size="mini" @click="remove(index)">删除</van-button>
-      </template>
-    </van-cell>
+    </van-swipe-cell>
   </van-cell-group>
 </template>
 

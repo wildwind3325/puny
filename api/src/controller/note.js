@@ -110,6 +110,15 @@ class LoginController {
     });
   }
 
+  async post_list(req, res, data) {
+    let db = new DB();
+    let list = await db.find('select * from "post" where "id" = :post_id or "parent_id" = :post_id', { post_id: data.post_id });
+    res.send({
+      code: 0,
+      data: list
+    });
+  }
+
   async post_add(req, res, data) {
     let db = new DB();
     let item = {
