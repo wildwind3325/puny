@@ -65,13 +65,19 @@ export default {
         action = 'post_edit';
       }
       try {
-        this.post.title = this.title;
-        this.post.content = this.content;
-        let res = await request.post('/api/common?_module=note&_action=' + action, this.post);
+        let res = await request.post('/api/common?_module=note&_action=' + action, {
+          id: this.post.id,
+          forum_id: this.post.forum_id,
+          parent_id: this.post.parent_id,
+          title: this.title,
+          content: this.content
+        });
         if (res.data.code !== 0) {
           common.notify('danger', '操作失败：' + res.data.msg);
         } else {
           this.show = false;
+          this.post.title = this.title;
+          this.post.content = this.content;
           this.$emit(action, action === 'post_add' ? res.data.data : this.post);
           common.notify('success', '操作成功');
         }

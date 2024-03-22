@@ -65,7 +65,7 @@ export default {
       try {
         let res = await request.post('/api/common?_module=note&_action=topic_list', {
           forum_id: this.forum_id,
-          pageSize: 8,
+          pageSize: 10,
           pageNumber: pageNumber || this.pageNumber
         });
         if (res.data.code !== 0) {

@@ -58,7 +58,23 @@ var sync_post = async () => {
   }
 };
 
+var sync_person = async () => {
+  let db_src = new DB('windtalk');
+  let db_tar = new DB();
+  let persons = await db_src.find('select * from "person"');
+  for (let i = 0; i < persons.length; i++) {
+    let person = persons[i];
+    delete person.id;
+    person.user_id = 1;
+    person.phone = person.mobile;
+    delete person.mobile;
+    person.birthday = '';
+    person.updated_at = person.created_at;
+    await db_tar.insert('person', person);
+  }
+};
+
 (async () => {
   prepare();
-  await sync_post();
+  await sync_person();
 })();

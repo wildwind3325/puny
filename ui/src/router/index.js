@@ -33,6 +33,10 @@ const routes = [{
   name: 'NotePost',
   component: () => import('../views/note/Post.vue')
 }, {
+  path: '/person',
+  name: 'Person',
+  component: () => import('../views/Person.vue')
+}, {
   path: '/:pathMatch(.*)',
   name: 'NotFound',
   component: NotFound
