@@ -31,8 +31,7 @@ const routes = [{
 }, {
   path: '/note/post/:id',
   name: 'NotePost',
-  component: () => import('../views/note/Post.vue'),
-  meta: { keepAlive: true }
+  component: () => import('../views/note/Post.vue')
 }, {
   path: '/:pathMatch(.*)',
   name: 'NotFound',

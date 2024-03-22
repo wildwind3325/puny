@@ -9,7 +9,7 @@
   <van-pagination v-model="pageNumber" :total-items="total" mode="simple" @change="query" />
   <van-cell-group>
     <van-swipe-cell v-for="(item, index) in list" :key="index">
-      <van-cell :border="false" :title="item.title" :value="item.created_at.substring(0, 10)"
+      <van-cell :title="item.title" :value="item.created_at.substring(0, 10)"
         @click="$router.push('/note/post/' + item.id)" />
       <template #right>
         <van-button type="danger" @click="remove(index)">删除</van-button>

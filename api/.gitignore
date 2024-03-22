@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 /logs/*
 /files/*
+/data/*
 
 # Editor directories and files
 .idea

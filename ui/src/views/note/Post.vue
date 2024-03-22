@@ -5,21 +5,23 @@
       <van-button type="primary" size="small" @click="create">写回复</van-button>
     </van-space>
   </div>
-  <div v-for="(item, index) in list" :key="index">
-    <van-cell-group>
-      <van-swipe-cell>
-        <van-cell :border="false" :value="item.created_at">
-          <template #title>
-            <span style="color: orange;">{{ item.title }}</span>
+  <div style="width: 100vw; height: calc(100vh - 94px); overflow: scroll;">
+    <div v-for="(item, index) in list" :key="index">
+      <van-cell-group>
+        <van-swipe-cell>
+          <van-cell :value="item.created_at">
+            <template #title>
+              <span :style="{ color: index === 0 ? 'orange' : 'blue' }">{{ item.title }}</span>
+            </template>
+          </van-cell>
+          <template #right>
+            <van-button type="warning" @click="edit(item)">编辑</van-button>
+            <van-button type="danger" @click="remove(index)">删除</van-button>
           </template>
-        </van-cell>
-        <template #right>
-          <van-button type="warning" @click="edit(item)">编辑</van-button>
-          <van-button type="danger" @click="remove(index)">删除</van-button>
-        </template>
-      </van-swipe-cell>
-    </van-cell-group>
-    <div v-html="item.content" style="padding: 8px 16px;">
+        </van-swipe-cell>
+      </van-cell-group>
+      <div v-html="item.content" style="padding: 8px 16px;">
+      </div>
     </div>
   </div>
   <Editor ref="editor" @post_add="onAdd" />

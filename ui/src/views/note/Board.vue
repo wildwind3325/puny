@@ -2,12 +2,12 @@
   <van-nav-bar title="版面" left-arrow @click-left="$router.back()" />
   <div style="padding: 8px 16px;">
     <van-space>
-      <van-button type="primary" size="small" @click="create">创建</van-button>
+      <van-button type="primary" size="small" @click="create">新建</van-button>
     </van-space>
   </div>
   <van-cell-group>
     <van-swipe-cell v-for="(item, index) in list" :key="index">
-      <van-cell :border="false" :title="item.name" :value="item.created_at.substring(0, 10)"
+      <van-cell :title="item.name" :value="item.created_at.substring(0, 10)"
         @click="$router.push('/note/forum/' + item.id)" />
       <template #right>
         <van-button type="warning" @click="edit(item)">修改</van-button>

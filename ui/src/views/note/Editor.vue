@@ -1,15 +1,18 @@
 <template>
   <div v-show="show" class="editor">
-    <div style="padding: 8px 16px;">
-      <van-space>
-        <van-button type="success" size="small" @click="save">保存</van-button>
-        <van-button type="warning" size="small" @click="show = false">取消</van-button>
-      </van-space>
+    <div style="height: 46px;"></div>
+    <div style="height: calc(100vh - 46px); background-color: white;">
+      <div style="padding: 8px 16px;">
+        <van-space>
+          <van-button type="success" size="small" @click="save">保存</van-button>
+          <van-button type="warning" size="small" @click="show = false">取消</van-button>
+        </van-space>
+      </div>
+      <van-cell-group>
+        <van-field v-model="title" label="标题" />
+      </van-cell-group>
+      <Editor v-model="content" :init="options" />
     </div>
-    <van-cell-group>
-      <van-field v-model="title" label="标题" />
-    </van-cell-group>
-    <Editor v-model="content" :init="options" />
   </div>
 </template>
 
@@ -88,6 +91,5 @@ export default {
   width: 100vw;
   height: 100vh;
   z-index: 100;
-  background-color: white;
 }
 </style>
