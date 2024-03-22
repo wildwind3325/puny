@@ -1,5 +1,5 @@
 <template>
-  <van-nav-bar title="联系人" left-arrow @click-left="$router.back()" />
+  <van-nav-bar title="站点" left-arrow @click-left="$router.back()" />
   <div style="padding: 8px 16px;">
     <van-space>
       <van-button type="primary" size="small" @click="create">新建</van-button>
@@ -43,7 +43,7 @@
 import common from '../components/common';
 import request from '../util/request';
 export default {
-  name: 'Person',
+  name: 'Site',
   data() {
     return {
       keyword: '',
@@ -51,7 +51,7 @@ export default {
       total: 0,
       list: [],
       show: false,
-      person: {
+      site: {
         id: 0,
         name: '',
         company: '',

@@ -34,3 +34,23 @@ CREATE TABLE [person] (
         [remark] varchar NOT NULL,
         [created_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
         [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));
+
+CREATE TABLE [site] (
+        [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+        [name] varchar NOT NULL,
+        [url] varchar NOT NULL,
+        [count] integer NOT NULL,
+        [remark] varchar NOT NULL,
+        [created_at] varchar NOT NULL DEFAULT (datetime('now', 'localtime')),
+        [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));
+
+CREATE TABLE [site_account] (
+        [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+        [site_id] integer NOT NULL,
+        [account] varchar NOT NULL,
+        [password] varchar NOT NULL,
+        [question] varchar NOT NULL,
+        [answer] varchar NOT NULL,
+        [remark] varchar NOT NULL,
+        [created_at] varchar NOT NULL DEFAULT (datetime('now', 'localtime')),
+        [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));

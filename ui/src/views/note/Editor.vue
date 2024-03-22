@@ -1,5 +1,5 @@
 <template>
-  <div v-show="show" class="editor">
+  <div v-show="show" class="overlay" style="z-index: 100;">
     <div style="height: 46px;"></div>
     <div style="height: calc(100vh - 46px); background-color: white;">
       <div style="padding: 8px 16px;">
@@ -88,14 +88,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.editor {
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  width: 100vw;
-  height: 100vh;
-  z-index: 100;
-}
-</style>
