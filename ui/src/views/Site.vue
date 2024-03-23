@@ -1,5 +1,5 @@
 <template>
-  <van-nav-bar title="站点" left-arrow @click-left="$router.back()" />
+  <van-nav-bar title="收藏夹" left-arrow @click-left="$router.back()" />
   <div style="padding: 8px 16px;">
     <van-space>
       <van-button type="primary" size="small" @click="create">新建</van-button>
@@ -10,8 +10,9 @@
   <van-pagination v-model="pageNumber" :total-items="total" mode="simple" @change="query" />
   <van-cell-group>
     <van-swipe-cell v-for="(item, index) in list" :key="index">
-      <van-cell :title="item.name" :value="item.created_at.substring(0, 10)" @click="edit(item)" />
+      <van-cell :title="item.name" :value="item.created_at.substring(0, 10)" />
       <template #right>
+        <van-button type="warning" @click="edit(item)">编辑</van-button>
         <van-button type="danger" @click="remove(index)">删除</van-button>
       </template>
     </van-swipe-cell>
@@ -26,14 +27,10 @@
         </van-space>
       </div>
       <van-cell-group>
-        <van-field v-model="person.name" label="姓名" />
-        <van-field v-model="person.company" label="公司" />
-        <van-field v-model="person.title" label="职务" />
-        <van-field v-model="person.phone" label="电话" />
-        <van-field v-model="person.email" label="邮箱" />
-        <van-field v-model="person.birthday" type="date" label="生日" />
-        <van-field v-model="person.address" label="地址" />
-        <van-field v-model="person.remark" label="备注" />
+        <van-field v-model="form.name" label="名称" />
+        <van-field v-model="form.url" label="地址" />
+        <van-field v-model="form.count" type="number" label="计数" />
+        <van-field v-model="form.remark" label="备注" />
       </van-cell-group>
     </div>
   </div>
@@ -51,15 +48,11 @@ export default {
       total: 0,
       list: [],
       show: false,
-      site: {
+      form: {
         id: 0,
         name: '',
-        company: '',
-        title: '',
-        phone: '',
-        email: '',
-        birthday: '',
-        address: '',
+        url: '',
+        count: 0,
         remark: ''
       },
       editItem: null
@@ -71,7 +64,7 @@ export default {
   methods: {
     async query(pageNumber) {
       try {
-        let res = await request.post('/api/common?_module=person&_action=list', {
+        let res = await request.post('/api/common?_module=site&_action=list', {
           keyword: this.keyword,
           pageSize: 10,
           pageNumber: pageNumber || this.pageNumber
@@ -88,52 +81,44 @@ export default {
       }
     },
     create() {
-      this.person = {
+      this.form = {
         id: 0,
         name: '',
-        company: '',
-        title: '',
-        phone: '',
-        email: '',
-        birthday: '',
-        address: '',
+        url: '',
+        count: 0,
         remark: ''
       };
       this.show = true;
     },
     edit(item) {
-      this.person = {
+      this.form = {
         id: item.id,
         name: item.name,
-        company: item.company,
-        title: item.title,
-        phone: item.phone,
-        email: item.email,
-        birthday: item.birthday,
-        address: item.address,
+        url: item.url,
+        count: item.count,
         remark: item.remark
       };
       this.editItem = item;
       this.show = true;
     },
     async save() {
-      if (!this.person.name) {
-        common.notify('warning', '姓名不能为空');
+      if (!this.form.name || !this.form.url) {
+        common.notify('warning', '名称和地址不能为空');
         return;
       }
       let action = 'add';
-      if (this.person.id !== 0) {
+      if (this.form.id !== 0) {
         action = 'edit';
       }
       try {
-        let res = await request.post('/api/common?_module=person&_action=' + action, this.person);
+        let res = await request.post('/api/common?_module=site&_action=' + action, this.form);
         if (res.data.code !== 0) {
           common.notify('danger', '操作失败：' + res.data.msg);
         } else {
           if (action === 'add') {
             this.list.unshift(res.data.data);
           } else {
-            Object.assign(this.editItem, this.person);
+            Object.assign(this.editItem, this.form);
           }
           this.show = false;
           common.notify('success', '操作成功');
@@ -146,7 +131,7 @@ export default {
       let result = await common.confirm('确认', '是否删除该项目？');
       if (!result) return;
       try {
-        let res = await request.post('/api/common?_module=person&_action=remove', { id: this.list[index].id });
+        let res = await request.post('/api/common?_module=site&_action=remove', { id: this.list[index].id });
         if (res.data.code !== 0) {
           common.notify('danger', '操作失败：' + res.data.msg);
         } else {

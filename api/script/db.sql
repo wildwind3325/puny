@@ -37,6 +37,7 @@ CREATE TABLE [person] (
 
 CREATE TABLE [site] (
         [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+        [user_id] integer NOT NULL,
         [name] varchar NOT NULL,
         [url] varchar NOT NULL,
         [count] integer NOT NULL,
