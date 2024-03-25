@@ -8,15 +8,7 @@ var util = require('../util/util');
 
 class ExplorerController {
   constructor() {
-    this.rules = {
-      init: {},
-      refresh: {},
-      image: {},
-      zip_open: {},
-      zip_close: {},
-      play: {},
-      exec: {}
-    };
+    this.rules = {};
     this.seperator = process.platform.startsWith('win') ? '\\' : '/';
   }
 

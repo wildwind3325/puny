@@ -74,7 +74,39 @@ var sync_person = async () => {
   }
 };
 
+var sync_site = async () => {
+  let db_src = new DB('windtalk');
+  let db_tar = new DB();
+  let time = new Date().format('yyyy-MM-dd HH:mm:ss');
+  let sites = await db_src.find('select * from "site" order by "created_at"');
+  for (let i = 0; i < sites.length; i++) {
+    let site = {
+      user_id: 1,
+      name: sites[i].name,
+      url: sites[i].url,
+      count: sites[i].count,
+      remark: sites[i].remark,
+      created_at: sites[i].created_at,
+      updated_at: sites[i].created_at
+    };
+    await db_tar.insert('site', site);
+    let accounts = await db_src.find('select * from "site_account" where "site_id" = :site_id', { site_id: sites[i].id });
+    for (let j = 0; j < accounts.length; j++) {
+      await db_tar.insert('site_account', {
+        site_id: site.id,
+        account: accounts[j].account,
+        password: accounts[j].password,
+        question: accounts[j].question,
+        answer: accounts[j].answer,
+        remark: '',
+        created_at: time,
+        updated_at: time
+      });
+    }
+  }
+};
+
 (async () => {
   prepare();
-  await sync_person();
+  await sync_site();
 })();

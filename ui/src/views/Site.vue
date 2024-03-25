@@ -13,8 +13,8 @@
       <van-swipe-cell>
         <van-cell :value="item.count">
           <template #title>
-            <span style="color: #323233;" @click="visit(item)">{{ item.name }}</span>
-            <span style="margin-left: 8px; color: dodgerblue;" @click="copy(item.url)">复制</span>
+            <span style="color: blue; text-decoration: underline;" @click="visit(item)">{{ item.name }}</span>
+            <span style="margin-left: 8px; color: #323233;" @click="copy(item.url)">复制</span>
             <span style="margin-left: 8px; color: orange;" @click="item.show_account = !item.show_account">账号</span>
           </template>
         </van-cell>
@@ -27,29 +27,29 @@
         <van-tab v-for="(account, account_index) in item.accounts" :key="account_index"
           :title="'账号' + (account_index + 1)">
           <van-cell-group inset>
-            <van-field v-model="account.account" clearable label="账号">
+            <van-field v-model="account.account" center clearable label="账号">
               <template #button>
-                <van-button size="small" type="primary" @click="copy(account.account)">复制</van-button>
+                <van-button type="primary" size="small" @click="copy(account.account)">复制</van-button>
               </template>
             </van-field>
-            <van-field v-model="account.password" clearable label="密码">
+            <van-field v-model="account.password" center clearable label="密码">
               <template #button>
-                <van-button size="small" type="primary" @click="copy(account.password)">复制</van-button>
+                <van-button type="primary" size="small" @click="copy(account.password)">复制</van-button>
               </template>
             </van-field>
-            <van-field v-model="account.question" clearable label="问题">
+            <van-field v-model="account.question" center clearable label="问题">
               <template #button>
-                <van-button size="small" type="primary" @click="copy(account.question)">复制</van-button>
+                <van-button type="primary" size="small" @click="copy(account.question)">复制</van-button>
               </template>
             </van-field>
-            <van-field v-model="account.answer" clearable label="回答">
+            <van-field v-model="account.answer" center clearable label="回答">
               <template #button>
-                <van-button size="small" type="primary" @click="copy(account.answer)">复制</van-button>
+                <van-button type="primary" size="small" @click="copy(account.answer)">复制</van-button>
               </template>
             </van-field>
-            <van-field v-model="account.remark" clearable label="备注">
+            <van-field v-model="account.remark" center clearable label="备注">
               <template #button>
-                <van-button size="small" type="primary" @click="copy(account.remark)">复制</van-button>
+                <van-button type="primary" size="small" @click="copy(account.remark)">复制</van-button>
               </template>
             </van-field>
             <div style="padding: 10px 16px;">

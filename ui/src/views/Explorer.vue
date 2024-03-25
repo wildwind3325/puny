@@ -1,5 +1,5 @@
 <template>
-  <van-nav-bar title="文件" left-arrow @click-left="$router.back()" />
+  <van-nav-bar :title="current ? current : '文件'" left-arrow @click-left="$router.back()" />
   <div style="height: 8px;"></div>
   <div style="padding: 0px 16px;">
     <van-space>
@@ -40,16 +40,13 @@
     </div>
   </div>
   <div v-show="viewMode === '预览'">
-    <div style="padding: 0px 16px; position: relative;">
+    <div style="padding: 0px 16px;">
       <van-space>
         <van-button type="warning" size="small" @click="switchScaleMode">{{ scaleMode }}</van-button>
         <van-button type="success" size="small" @click="toPrev">上一张</van-button>
         <van-button type="default" size="small">{{ pointer + ' / ' + images.length }}</van-button>
         <van-button type="success" size="small" @click="toNext">下一张</van-button>
       </van-space>
-      <div style="line-height: 32px; color: #969799; position: absolute; right: 16px; top: 0px;">
-        <span>{{ current }}</span>
-      </div>
     </div>
     <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="touchStart"
       @touchmove="touchMove" @touchend="touchEnd" @mousedown="mouseStart" @mousemove="mouseMove" @mouseup="mouseEnd"

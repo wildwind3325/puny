@@ -4,11 +4,7 @@ var util = require('../util/util');
 
 class LoginController {
   constructor() {
-    this.rules = {
-      login: {},
-      logout: {},
-      status: {}
-    };
+    this.rules = {};
   }
 
   async login(req, res, data) {

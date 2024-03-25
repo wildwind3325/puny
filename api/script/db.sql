@@ -4,6 +4,14 @@ CREATE TABLE [user] (
         [created_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
         [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));
 
+CREATE TABLE [config] (
+        [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+        [user_id] integer NOT NULL,
+        [name] nvarchar NOT NULL,
+        [value] nvarchar NOT NULL,
+        [created_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
+        [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));
+
 CREATE TABLE [forum] (
         [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
         [user_id] integer NOT NULL,
@@ -13,7 +21,6 @@ CREATE TABLE [forum] (
 
 CREATE TABLE [post] (
         [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-        [user_id] integer NOT NULL,
         [forum_id] integer NOT NULL,
         [parent_id] integer NOT NULL,
         [title] varchar NOT NULL,
