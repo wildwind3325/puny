@@ -1,4 +1,4 @@
-import { showConfirmDialog, showDialog, showNotify } from 'vant';
+import { showConfirmDialog, showDialog, showNotify, showToast } from 'vant';
 
 export default {
   notify(type, message) {
@@ -25,5 +25,8 @@ export default {
         resolve(false);
       });
     });
+  },
+  toast(message) {
+    showToast(message);
   }
 };

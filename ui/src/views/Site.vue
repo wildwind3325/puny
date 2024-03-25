@@ -194,7 +194,7 @@ export default {
     },
     copy(str) {
       navigator.clipboard.writeText(str);
-      common.notify('success', '内容已复制');
+      common.toast('内容已复制');
     },
     async saveAccount(site, account) {
       let action = 'account_add';

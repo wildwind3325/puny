@@ -3,14 +3,12 @@
   <div style="height: 8px;"></div>
   <div style="padding: 0px 16px;">
     <van-space>
-      <van-button type="primary" size="small" @click="up">上一级</van-button>
+      <van-button type="default" size="small" @click="up">上一级</van-button>
       <van-button type="primary" size="small" @click="create">创建</van-button>
-      <van-button type="success" size="small" @click="copy">复制</van-button>
-      <van-button type="warning" size="small" @click="cut">剪切</van-button>
-      <van-button type="primary" size="small" @click="paste">粘贴</van-button>
-      <van-button type="success" size="small" @click="refresh">刷新</van-button>
-      <van-button type="warning" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
+      <van-button type="success" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
+      <van-button type="warning" size="small" @click="showPanel = true">更多</van-button>
     </van-space>
+    <van-action-sheet v-model:show="showPanel" :actions="actions" @select="doAction" />
   </div>
   <van-field label="路径" :label-width="40" v-model="path" readonly />
   <div v-show="viewMode === '列表'" class="list-container">
@@ -46,6 +44,7 @@
         <van-button type="success" size="small" @click="toPrev">上一张</van-button>
         <van-button type="default" size="small">{{ pointer + ' / ' + images.length }}</van-button>
         <van-button type="success" size="small" @click="toNext">下一张</van-button>
+        <van-button v-show="operatable() && current" type="danger" size="small" @click="removeImage">删除</van-button>
       </van-space>
     </div>
     <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="touchStart"
@@ -62,6 +61,16 @@ export default {
   name: 'Explorer',
   data() {
     return {
+      showPanel: false,
+      actions: [{
+        name: '刷新'
+      }, {
+        name: '复制'
+      }, {
+        name: '剪切'
+      }, {
+        name: '粘贴'
+      }],
       viewMode: '列表',
       path: '',
       items: [],
@@ -218,6 +227,25 @@ export default {
       } catch (err) {
         common.notify('danger', '浏览失败：' + err.message);
       }
+    },
+    doAction(action) {
+      switch (action.name) {
+        case '刷新':
+          this.refresh();
+          break;
+        case '复制':
+          this.copy();
+          break;
+        case '剪切':
+          this.cut();
+          break;
+        case '粘贴':
+          this.paste();
+          break;
+        default:
+          break;
+      }
+      this.showPanel = false;
     },
     async create() {
       if (explorer.zipFile || (this.path === '' && explorer.seperator === '\\')) return;
@@ -408,6 +436,14 @@ export default {
       this.pointer++;
       this.targetItem = this.images[this.pointer - 1];
       explorer.clear(true);
+    },
+    removeImage() {
+      for (let i = explorer.folders.length; i < this.items.length; i++) {
+        if (this.items[i].name === this.current) {
+          this.remove(i);
+          break;
+        }
+      }
     },
     toPointer(item) {
       this.viewMode = '预览';
