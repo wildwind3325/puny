@@ -122,7 +122,6 @@ class LoginController {
   async post_add(req, res, data) {
     let db = new DB();
     let item = {
-      user_id: req.session.user.id,
       forum_id: data.forum_id,
       parent_id: data.parent_id,
       title: data.title,

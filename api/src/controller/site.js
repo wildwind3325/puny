@@ -22,6 +22,20 @@ class SiteController {
       pageNumber: data.pageNumber,
       orderBy: 'order by "count" desc'
     });
+    for (let i = 0; i < result.rows.length; i++) {
+      result.rows[i].show_account = false;
+      let accounts = await db.find('select * from "site_account" where "site_id" = :site_id', { site_id: result.rows[i].id });
+      accounts.push({
+        id: 0,
+        site_id: result.rows[i].id,
+        account: '',
+        password: '',
+        question: '',
+        answer: '',
+        remark: ''
+      });
+      result.rows[i].accounts = accounts;
+    }
     res.send({
       code: 0,
       data: result

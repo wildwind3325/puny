@@ -25,7 +25,7 @@ export default {
   components: { Editor },
   data() {
     return {
-      post: {
+      form: {
         id: 0,
         forum_id: 0,
         parent_id: 0,
@@ -45,10 +45,10 @@ export default {
   },
   methods: {
     init(post) {
-      this.post = post;
-      if (this.post.id > 0) {
-        this.title = this.post.title;
-        this.content = this.post.content;
+      this.form = post;
+      if (this.form.id > 0) {
+        this.title = this.form.title;
+        this.content = this.form.content;
       } else {
         this.title = '';
         this.content = '';
@@ -61,14 +61,14 @@ export default {
         return;
       }
       let action = 'post_add';
-      if (this.post.id !== 0) {
+      if (this.form.id !== 0) {
         action = 'post_edit';
       }
       try {
         let res = await request.post('/api/common?_module=note&_action=' + action, {
-          id: this.post.id,
-          forum_id: this.post.forum_id,
-          parent_id: this.post.parent_id,
+          id: this.form.id,
+          forum_id: this.form.forum_id,
+          parent_id: this.form.parent_id,
           title: this.title,
           content: this.content
         });
@@ -76,9 +76,9 @@ export default {
           common.notify('danger', '操作失败：' + res.data.msg);
         } else {
           this.show = false;
-          this.post.title = this.title;
-          this.post.content = this.content;
-          this.$emit(action, action === 'post_add' ? res.data.data : this.post);
+          this.form.title = this.title;
+          this.form.content = this.content;
+          this.$emit(action, action === 'post_add' ? res.data.data : this.form);
           common.notify('success', '操作成功');
         }
       } catch (err) {
