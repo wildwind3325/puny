@@ -8,7 +8,17 @@
       <van-button type="success" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
       <van-button type="warning" size="small" @click="showPanel = true">更多</van-button>
     </van-space>
-    <van-action-sheet v-model:show="showPanel" :actions="actions" @select="doAction" />
+    <van-popup v-model:show="showPanel" position="bottom">
+      <div class="toolbar">
+        <van-action-bar-icon icon="info-o" text="常用" />
+        <van-action-bar-button type="primary" text="刷新" class="van-action-bar-button--first"
+          @click="doAction('refresh')" />
+        <van-action-bar-button type="warning" text="复制" @click="doAction('copy')" />
+        <van-action-bar-button type="warning" text="剪切" @click="doAction('cut')" />
+        <van-action-bar-button type="success" text="粘贴" class="van-action-bar-button--last"
+          @click="doAction('paste')" />
+      </div>
+    </van-popup>
   </div>
   <van-field label="路径" :label-width="40" v-model="path" readonly />
   <div v-show="viewMode === '列表'" class="list-container">
@@ -62,15 +72,6 @@ export default {
   data() {
     return {
       showPanel: false,
-      actions: [{
-        name: '刷新'
-      }, {
-        name: '复制'
-      }, {
-        name: '剪切'
-      }, {
-        name: '粘贴'
-      }],
       viewMode: '列表',
       path: '',
       items: [],
@@ -229,17 +230,17 @@ export default {
       }
     },
     doAction(action) {
-      switch (action.name) {
-        case '刷新':
+      switch (action) {
+        case 'refresh':
           this.refresh();
           break;
-        case '复制':
+        case 'copy':
           this.copy();
           break;
-        case '剪切':
+        case 'cut':
           this.cut();
           break;
-        case '粘贴':
+        case 'paste':
           this.paste();
           break;
         default:
@@ -582,5 +583,12 @@ export default {
   width: 100vw;
   height: calc(100vh - 162px);
   display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  box-sizing: content-box;
+  height: 50px;
 }
 </style>
