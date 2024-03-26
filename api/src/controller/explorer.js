@@ -46,7 +46,7 @@ class ExplorerController {
               name: list[i].name,
               size: stat.size,
               fsize: file.getSizeString(stat.size),
-              ctime: stat.ctime.format('yyyy-MM-dd HH:mm:ss')
+              ctime: stat.mtime.format('yyyy-MM-dd HH:mm:ss')
             });
           } catch (err) { }
         }
