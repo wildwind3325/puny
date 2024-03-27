@@ -214,7 +214,11 @@ class ExplorerController {
         msg: '仅支持在本地打开文件'
       });
     } else {
-      cp.exec(data.file);
+      let cmd = data.file;
+      if (process.platform.startsWith('win')) {
+        cmd = 'explorer.exe ' + cmd;
+      }
+      cp.exec(cmd);
       res.send({ code: 0 });
     }
   }
