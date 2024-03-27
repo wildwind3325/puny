@@ -28,8 +28,9 @@
       <div style="height: 8px;"></div>
       <div>
         <van-button v-show="operatable()" type="default" size="small" :icon="item.checked ? 'success' : 'plus'"
-          style="margin-right: 5px;" @click="item.checked = !item.checked"></van-button>
-        <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
+          @click="item.checked = !item.checked"></van-button>
+        <van-button v-show="openable()" type="success" size="small" style="margin-left: 5px;"
+          @click="refresh(index)">打开</van-button>
         <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;"
           @click="toPointer(item)">预览</van-button>
         <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;"
@@ -328,6 +329,9 @@ export default {
     up() {
       this.refresh('..');
     },
+    openable() {
+      return !explorer.zipFile;
+    },
     operatable() {
       return !explorer.zipFile && !(this.path === '' && explorer.seperator === '\\');
     },
@@ -588,7 +592,6 @@ export default {
 .toolbar {
   display: flex;
   align-items: center;
-  box-sizing: content-box;
   height: 50px;
 }
 </style>
