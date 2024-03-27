@@ -33,7 +33,7 @@ class ExplorerController {
         .map(value => value.trim());
     } else {
       let dir = file.genPath(data.dirRoute);
-      let list = fs.readdirSync(dir, { withFileTypes: true });
+      let list = fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => { return a.name.localeCompare(b.name); });
       for (let i = 0; i < list.length; i++) {
         if (list[i].isDirectory()) {
           if (list[i].name.toUpperCase() !== '$RECYCLE.BIN' && list[i].name !== 'System Volume Information') {
