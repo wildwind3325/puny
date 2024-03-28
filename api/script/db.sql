@@ -62,3 +62,15 @@ CREATE TABLE [site_account] (
         [remark] varchar NOT NULL,
         [created_at] varchar NOT NULL DEFAULT (datetime('now', 'localtime')),
         [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));
+
+CREATE TABLE [artist] (
+        [id] integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+        [name] varchar NOT NULL,
+        [rating] varchar NOT NULL,
+        [px_id] varchar NOT NULL,
+        [px_updated_to] varchar NOT NULL,
+        [ib_id] varchar NOT NULL,
+        [ib_updated_to] varchar NOT NULL,
+        [remark] varchar NOT NULL,
+        [created_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
+        [updated_at] datetime NOT NULL DEFAULT (datetime('now', 'localtime')));
