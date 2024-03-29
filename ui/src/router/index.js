@@ -20,6 +20,14 @@ const routes = [{
   name: 'Player',
   component: () => import('../views/Player.vue')
 }, {
+  path: '/site',
+  name: 'Site',
+  component: () => import('../views/Site.vue')
+}, {
+  path: '/artist',
+  name: 'Artist',
+  component: () => import('../views/Artist.vue')
+}, {
   path: '/note/board',
   name: 'NoteBoard',
   component: () => import('../views/note/Board.vue')
@@ -36,10 +44,6 @@ const routes = [{
   path: '/person',
   name: 'Person',
   component: () => import('../views/Person.vue')
-}, {
-  path: '/site',
-  name: 'Site',
-  component: () => import('../views/Site.vue')
 }, {
   path: '/config',
   name: 'Config',

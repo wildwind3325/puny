@@ -16,9 +16,66 @@ var prepare = () => {
     storage: 'D:/Code/NodeJS/windtalk/app/data/windtalk.db',
     logging: false
   }));
+  cm.set('dm', new Sequelize({
+    dialect: 'sqlite',
+    storage: 'E:/Software/DarkMouse/DM.db',
+    logging: false
+  }));
 };
 
-var sync_post = async () => {
+var sync_site = async () => {
+  let db_src = new DB('windtalk');
+  let db_tar = new DB();
+  let time = new Date().format('yyyy-MM-dd HH:mm:ss');
+  let sites = await db_src.find('select * from "site" order by "created_at"');
+  for (let i = 0; i < sites.length; i++) {
+    let site = {
+      user_id: 1,
+      name: sites[i].name,
+      url: sites[i].url,
+      count: sites[i].count,
+      remark: sites[i].remark,
+      created_at: sites[i].created_at,
+      updated_at: sites[i].created_at
+    };
+    await db_tar.insert('site', site);
+    let accounts = await db_src.find('select * from "site_account" where "site_id" = :site_id', { site_id: sites[i].id });
+    for (let j = 0; j < accounts.length; j++) {
+      await db_tar.insert('site_account', {
+        site_id: site.id,
+        account: accounts[j].account,
+        password: accounts[j].password,
+        question: accounts[j].question,
+        answer: accounts[j].answer,
+        remark: '',
+        created_at: time,
+        updated_at: time
+      });
+    }
+  }
+};
+
+var sync_artist = async () => {
+  let db_src = new DB('dm');
+  let db_tar = new DB();
+  let artists = await db_src.find('select * from "Artists" order by "Create"');
+  for (let i = 0; i < artists.length; i++) {
+    await db_tar.insert('artist', {
+      user_id: 1,
+      name: artists[i].Name,
+      rating: parseInt(artists[i].Star),
+      px_id: artists[i].PixivId,
+      px_updated_to: artists[i].PixivImage,
+      ib_id: artists[i].InkbunnyId,
+      ib_updated_to: artists[i].InkbunnyImage,
+      remark: artists[i].Tags,
+      created_at: artists[i].Create,
+      updated_at: artists[i].Update
+    });
+  }
+};
+
+var sync_note = async () => {
   let db_src = new DB('windtalk');
   let db_tar = new DB();
   let forums = await db_src.find('select * from "forum"');
@@ -74,39 +131,6 @@ var sync_person = async () => {
   }
 };
 
-var sync_site = async () => {
-  let db_src = new DB('windtalk');
-  let db_tar = new DB();
-  let time = new Date().format('yyyy-MM-dd HH:mm:ss');
-  let sites = await db_src.find('select * from "site" order by "created_at"');
-  for (let i = 0; i < sites.length; i++) {
-    let site = {
-      user_id: 1,
-      name: sites[i].name,
-      url: sites[i].url,
-      count: sites[i].count,
-      remark: sites[i].remark,
-      created_at: sites[i].created_at,
-      updated_at: sites[i].created_at
-    };
-    await db_tar.insert('site', site);
-    let accounts = await db_src.find('select * from "site_account" where "site_id" = :site_id', { site_id: sites[i].id });
-    for (let j = 0; j < accounts.length; j++) {
-      await db_tar.insert('site_account', {
-        site_id: site.id,
-        account: accounts[j].account,
-        password: accounts[j].password,
-        question: accounts[j].question,
-        answer: accounts[j].answer,
-        remark: '',
-        created_at: time,
-        updated_at: time
-      });
-    }
-  }
-};
-
 (async () => {
   prepare();
-  await sync_site();
 })();

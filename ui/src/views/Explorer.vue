@@ -48,7 +48,7 @@
     </div>
   </div>
   <div v-show="viewMode === '预览'">
-    <div style="padding: 0px 16px;">
+    <div style="padding: 0px 16px; position: relative;">
       <van-space>
         <van-button type="warning" size="small" @click="switchScaleMode">{{ scaleMode }}</van-button>
         <van-button type="success" size="small" @click="toPrev">上一张</van-button>
@@ -56,6 +56,9 @@
         <van-button type="success" size="small" @click="toNext">下一张</van-button>
         <van-button v-show="operatable() && current" type="danger" size="small" @click="removeImage">删除</van-button>
       </van-space>
+      <div style="line-height: 32px; color: #969799; position: absolute; right: 16px; top: 0px; font-size: 12px;">
+        <span>{{ current_size }}</span>
+      </div>
     </div>
     <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="touchStart"
       @touchmove="touchMove" @touchend="touchEnd" @mousedown="mouseStart" @mousemove="mouseMove" @mouseup="mouseEnd"
@@ -82,6 +85,7 @@ export default {
       images: [],
       pointer: 0,
       current: '',
+      current_size: '',
       targetItem: '',
       fetching: false,
       updateTimer: null,
@@ -217,6 +221,7 @@ export default {
         this.images = [];
         this.pointer = 0;
         this.current = '';
+        this.current_size = '';
         this.targetItem = '';
         for (let i = 0; i < explorer.files.length; i++) {
           this.items.push(explorer.files[i]);
@@ -426,6 +431,7 @@ export default {
       this.pointer--;
       if (this.pointer === 0) {
         this.current = '';
+        this.current_size = '';
         this.targetItem = '';
       } else {
         this.targetItem = this.images[this.pointer - 1];
@@ -510,6 +516,12 @@ export default {
     async update() {
       if (this.fetching || !this.targetItem) return;
       this.current = this.targetItem;
+      for (let i = explorer.folders.length; i < this.items.length; i++) {
+        if (this.items[i].name === this.current) {
+          this.current_size = this.items[i].fsize;
+          break;
+        }
+      }
       try {
         this.fetching = true;
         let res = await request.post('/api/common?_module=explorer&_action=image', {

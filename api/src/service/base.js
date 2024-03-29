@@ -1,3 +1,5 @@
+var DB = require('../dao/db');
+
 class BaseService {
   constructor() {
     this.safeModules = ['login'];
@@ -54,6 +56,16 @@ class BaseService {
       method: method,
       data: data
     };
+  }
+
+  async getConfig(user_id, name) {
+    let db = new DB();
+    let list = await db.find('select "value" from "config" where "user_id" = :user_id and "name" = :name', {
+      user_id: user_id,
+      name: name
+    });
+    if (list.length > 0) return list[0].value;
+    return null;
   }
 }
 

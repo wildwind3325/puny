@@ -3,6 +3,7 @@
   <van-grid direction="horizontal" :column-num="3">
     <van-grid-item icon="idcard" icon-color="blue" text="文件" to="/explorer" />
     <van-grid-item icon="star-o" icon-color="green" text="收藏夹" to="/site" />
+    <van-grid-item icon="flower-o" icon-color="gold" text="艺术家" to="/artist" />
     <van-grid-item icon="notes-o" icon-color="#1989fa" text="笔记" to="/note/board" />
     <van-grid-item icon="friends-o" icon-color="red" text="联系人" to="/person" />
   </van-grid>
