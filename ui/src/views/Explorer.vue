@@ -206,6 +206,9 @@ export default {
           explorer.zipFile = newZipFile;
           explorer.zipRoute = newZipRoute;
           this.updatePath();
+          if (this.viewMode === '预览') {
+            this.viewMode = '列表';
+          }
         }
         explorer.folders = res.data.data.folders;
         explorer.files = res.data.data.files;

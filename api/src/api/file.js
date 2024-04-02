@@ -32,10 +32,10 @@ var file = {
       temp /= 1024;
     }
     let val = (Math.floor(temp * 100) / 100).toString();
-    if (val.endsWith('0')) {
+    if (val.endsWith('0') && val.length > 1) {
       val = val.substring(0, val.length - 1);
     }
-    if (val.endsWith('0')) {
+    if (val.endsWith('0') && val.length > 1) {
       val = val.substring(0, val.length - 1);
     }
     if (val.endsWith('.')) {
