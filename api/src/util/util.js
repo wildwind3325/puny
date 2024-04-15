@@ -1,5 +1,6 @@
 var crypto = require('crypto');
 var path = require('path');
+var uuid = require('uuid');
 
 const aes_key = '754a5bdc7468bb1f', iv = '370284027734754a';
 
@@ -48,6 +49,9 @@ var util = {
       }
     }
     return '';
+  },
+  uid() {
+    return uuid.v4().replace(/-/g, '');
   }
 };
 

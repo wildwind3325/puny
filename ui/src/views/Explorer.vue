@@ -18,6 +18,14 @@
         <van-action-bar-button type="success" text="粘贴" class="van-action-bar-button--last"
           @click="doAction('paste')" />
       </div>
+      <div class="toolbar">
+        <van-action-bar-icon icon="fire-o" text="下载" />
+        <van-action-bar-button type="primary" text="Pixiv" class="van-action-bar-button--first"
+          @click="doAction('pixiv')" />
+        <van-action-bar-button type="warning" text="Inkbunny" @click="doAction('inkbunny')" />
+        <van-action-bar-button type="success" text="Exhentai" class="van-action-bar-button--last"
+          @click="doAction('exhentai')" />
+      </div>
     </van-popup>
   </div>
   <van-field label="路径" :label-width="40" v-model="path" readonly />
@@ -64,14 +72,17 @@
       @touchmove="touchMove" @touchend="touchEnd" @mousedown="mouseStart" @mousemove="mouseMove" @mouseup="mouseEnd"
       @mouseout="mouseEnd"></canvas>
   </div>
+  <Pixiv ref="pixiv" />
 </template>
 
 <script>
 import common from '../components/common';
 import request from '../util/request';
 import explorer from '../api/explorer';
+import Pixiv from './Pixiv.vue';
 export default {
   name: 'Explorer',
+  components: { Pixiv },
   data() {
     return {
       showPanel: false,
@@ -112,7 +123,7 @@ export default {
       common.notify('danger', '初始化失败：' + err.message);
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
       this.updateTimer = null;
@@ -250,6 +261,9 @@ export default {
           break;
         case 'paste':
           this.paste();
+          break;
+        case 'pixiv':
+          this.$refs.pixiv.show();
           break;
         default:
           break;

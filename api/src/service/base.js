@@ -28,7 +28,7 @@ class BaseService {
     try {
       controller = require('../controller/' + module);
       method = controller[action];
-    } catch (err) { }
+    } catch (err) { console.log(err); }
     if (!method || !method instanceof Function) {
       return {
         code: 1,
@@ -56,6 +56,15 @@ class BaseService {
       method: method,
       data: data
     };
+  }
+
+  async setConfig(user_id, name, value) {
+    let db = new DB();
+    await db.executeUpdate('update "config" set "value" = :value where "user_id" = :user_id and "name" = :name', {
+      user_id: user_id,
+      name: name,
+      value: value
+    });
   }
 
   async getConfig(user_id, name) {
