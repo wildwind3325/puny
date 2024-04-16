@@ -70,10 +70,10 @@ export default {
       }
     },
     download() {
-      console.log('下载');
+      console.log('暂未开放');
     },
     async batch() {
-      if (explorer.zipFile || (this.path === '' && explorer.seperator === '\\')) return;
+      if (explorer.zipFile || (explorer.getPath() === '' && explorer.seperator === '\\')) return;
       if (!this.cg_ids) {
         common.notify('warning', '请填入要下载的作品ID，逗号分隔。');
         return;
