@@ -74,8 +74,14 @@ export default {
     batch() {
       console.log('批量');
     },
-    cancel() {
-      console.log('停止');
+    async cancel() {
+      if (!this.busy) {
+        common.notify('warning', '当前空闲');
+        return;
+      }
+      try {
+        await request.post('/api/common?_module=pixiv&_action=cancel');
+      } catch (err) { }
     }
   }
 };

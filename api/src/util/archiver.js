@@ -1,6 +1,6 @@
 var cp = require('child_process');
 
-var baseService = require('./base');
+var baseService = require('../service/base');
 
 var zip_exe = '', zip_extract = '', zip_compress = '';
 

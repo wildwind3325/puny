@@ -6,7 +6,7 @@ var DB = require('../dao/db');
 
 class PixivService {
   constructor() {
-    this.session_id = '';
+    this.cookie = '';
     this.enable_proxy = true;
     this.proxy_host = '127.0.0.1';
     this.proxy_port = 10809;
@@ -37,8 +37,8 @@ class PixivService {
     }
   }
 
-  init(session_id, proxy) {
-    this.session_id = session_id;
+  init(cookie, proxy) {
+    this.cookie = cookie;
     if (proxy) {
       this.enable_proxy = true;
       let arr = proxy.split('//')[1].split(':');
@@ -77,7 +77,7 @@ class PixivService {
           ':path': pathname,
           'host': host,
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-          'cookie': 'PHPSESSID=' + this.session_id
+          'cookie': this.cookie
         };
         Object.assign(options, headers || {});
         let request = client.request(options);
@@ -119,7 +119,7 @@ class PixivService {
           ':path': pathname,
           'host': host,
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-          'cookie': 'PHPSESSID=' + this.session_id
+          'cookie': this.cookie
         };
         Object.assign(options, headers || {});
         let request = client.request(options);
@@ -163,7 +163,7 @@ class PixivService {
           ':path': pathname,
           'host': host,
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-          'cookie': 'PHPSESSID=' + this.session_id
+          'cookie': this.cookie
         };
         Object.assign(options, headers || {});
         let request = client.request(options);

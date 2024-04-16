@@ -50,10 +50,10 @@ class PixivController {
       if (!px_update) throw new Error('更新进度未设置');
       px_update = parseInt(px_update);
       if (px_update < 0 || isNaN(px_update)) throw new Error('更新进度设置错误');
-      let session_id = await baseService.getConfig(user_id, 'px_session');
-      if (!session_id) throw new Error('Pixiv SessionID未设置');
+      let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
+      if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      pixivService.init(session_id, proxy);
+      pixivService.init(px_cookie, proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
@@ -62,7 +62,7 @@ class PixivController {
       while (true) {
         if (this.cancel) break;
         let url = 'https://www.pixiv.net/ajax/follow_latest/illust?mode=all&lang=zh&p=' + page;
-        let result = JSON.parse(await pixivService.http_get(url, { 'Referrer': 'https://www.pixiv.net/bookmark_new_illust.php?p=' + page }));
+        let result = JSON.parse(await pixivService.http_get(url, { 'referer': 'https://www.pixiv.net/bookmark_new_illust.php?p=' + page }));
         if (result.error === true) throw new Error(result.message);
         let list = result.body.thumbnails.illust;
         for (let i = 0; i < list.length; i++) {
@@ -104,7 +104,6 @@ class PixivController {
         }
         await baseService.setConfig(user_id, 'px_update', cg.id);
         this.message = (i + 1) + ' / ' + cgs.length;
-        this.cancel = true;
       }
     } catch (err) {
       this.logger.error(err.message, err);
@@ -116,7 +115,8 @@ class PixivController {
 
   async download(dir, id, pointer, total, zip_cg) {
     let files = [];
-    let content = await pixivService.http_get('https://www.pixiv.net/artworks/' + id);
+    let referer = 'https://www.pixiv.net/artworks/' + id;
+    let content = await pixivService.http_get(referer);
     let page = cheerio.load(content);
     let meta = JSON.parse(page('meta#meta-preload-data').attr('content'));
     let illust = meta.illust[id + ''].userIllusts[id + ''];
@@ -126,20 +126,20 @@ class PixivController {
         let url = meta.illust[id + ''].urls.original;
         let filename = id + file.getExtension(url);
         if (!fs.existsSync(dir + filename)) {
-          let buffer = await pixivService.http_data(url, { 'Referrer': 'https://www.pixiv.net/artworks/' + id });
+          let buffer = await pixivService.http_data(url, { 'referer': referer });
           fs.writeFileSync(dir + filename, buffer);
         }
         files.push(filename);
       } else {
         if (!fs.existsSync(dir + id + '.zip')) {
-          let data = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/illust/' + id + '/pages', { 'Referrer': 'https://www.pixiv.net/artworks/' + id }));
+          let data = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/illust/' + id + '/pages', { 'referer': referer }));
           let len = Math.max(2, ((count - 1) + '').length);
           for (let i = 0; i < count; i++) {
             if (this.cancel) break;
             let url = data.body[i].urls.original;
             let filename = id + '_' + (i + '').padStart(len, '0') + file.getExtension(url);
             if (!fs.existsSync(dir + filename)) {
-              let buffer = await pixivService.http_data(url, { 'Referrer': 'https://www.pixiv.net/artworks/' + id });
+              let buffer = await pixivService.http_data(url, { 'referer': referer });
               fs.writeFileSync(dir + filename, buffer);
             }
             files.push(filename);
@@ -159,10 +159,40 @@ class PixivController {
         if (count >= zip_cg) files = [dir + id + '.zip'];
       }
     } else {
-      let data = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/illust/' + id + '/ugoira_meta', { 'Referrer': 'https://www.pixiv.net/artworks/' + id }));
-      let url = data.body.originalSrc ? data.body.originalSrc : data.body.src;
+      let filename = id + '.zip';
+      if (!fs.existsSync(dir + filename)) {
+        let data = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/illust/' + id + '/ugoira_meta', { 'referer': referer }));
+        let str = '';
+        for (let i = 0; i < data.body.frames.length; i++) {
+          str += data.body.frames[i].file + ',' + data.body.frames[i].delay + '\r\n';
+          fs.writeFileSync(dir + id + '.frames', str, { encoding: 'utf-8' });
+        }
+        let url = data.body.originalSrc ? data.body.originalSrc : data.body.src;
+        let headers = await pixivService.http_head(url, { 'referer': referer });
+        let len = parseInt(headers['content-length']);
+        let arr = [];
+        let times = Math.floor(len / 300000);
+        if (len % 300000 !== 0) times++;
+        for (let i = 0; i < times; i++) {
+          let start = i * 300000;
+          let end = (i + 1) * 300000 - 1;
+          if (end >= len) end = len - 1;
+          let buffer = await pixivService.http_data(url, {
+            'referer': referer,
+            'range': 'bytes=' + start + '-' + end
+          });
+          arr.push(buffer);
+        }
+        fs.writeFileSync(dir + filename, Buffer.concat(arr));
+      }
+      files.push(id + '.frames', filename);
     }
     return files;
+  }
+
+  cancel(req, res, data) {
+    this.cancel = true;
+    res.send({ code: 0 });
   }
 }
 
