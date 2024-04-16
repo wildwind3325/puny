@@ -181,9 +181,12 @@ class PixivService {
     });
   }
 
-  async getArtist(id) {
+  async getArtist(user_id, id) {
     let db = new DB();
-    let artist = await db.findOne('select * from "artist" where "px_id" = :id', { id: id });
+    let artist = await db.findOne('select * from "artist" where "user_id" = :user_id and "px_id" = :id', {
+      user_id: user_id,
+      id: id
+    });
     return artist;
   }
 }

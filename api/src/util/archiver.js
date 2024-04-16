@@ -18,9 +18,9 @@ var archiver = {
       return { code: 0 };
     }
   },
-  async extract(file, folder) {
+  async extract(user_id, file, folder) {
     if (!zip_exe || !zip_extract) {
-      let res = await this.init();
+      let res = await this.init(user_id);
       if (res.code !== 0) {
         return res;
       }
@@ -28,9 +28,9 @@ var archiver = {
     cp.execSync(zip_exe + ' ' + zip_extract.replace('%FILE%', file).replace('%FOLDER%', folder));
     return { code: 0 };
   },
-  async compress(folder, file) {
+  async compress(user_id, folder, file) {
     if (!zip_exe || !zip_compress) {
-      let res = await this.init();
+      let res = await this.init(user_id);
       if (res.code !== 0) {
         return res;
       }

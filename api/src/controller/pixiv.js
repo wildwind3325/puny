@@ -68,7 +68,7 @@ class PixivController {
         for (let i = 0; i < list.length; i++) {
           if (this.cancel) break;
           let id = parseInt(list[i].id);
-          if (id < px_update) break;
+          if (id <= px_update) break;
           cgs.unshift({
             id: id,
             type: list[i].illustType,
@@ -77,7 +77,7 @@ class PixivController {
             thumbnail: list[i].url
           });
         }
-        if (parseInt(list[list.length - 1].id) < px_update) break;
+        if (parseInt(list[list.length - 1].id) <= px_update || cgs.length >= 1000) break;
         page++;
       }
 
@@ -85,13 +85,13 @@ class PixivController {
       for (let i = 0; i < cgs.length; i++) {
         if (this.cancel) break;
         let cg = cgs[i];
-        let files = await this.download(dir, cg.id, i, cgs.length, zip_cg);
+        let files = await this.download(user_id, dir, cg.id, i, cgs.length, zip_cg);
         let str = '';
         for (let j = 0; j < files.length; j++) {
           str += ',' + files[j];
         }
         if (this.cancel) break;
-        let artist = await pixivService.getArtist(cg.id);
+        let artist = await pixivService.getArtist(user_id, cg.user_id);
         if (artist) {
           fs.appendFileSync(dir + 'update.log', '1,' + cg.user_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
           await db.update('artist', {
@@ -113,7 +113,43 @@ class PixivController {
     }
   }
 
-  async download(dir, id, pointer, total, zip_cg) {
+  async batch(req, res, data) {
+    if (this.busy) {
+      res.send({
+        code: 1,
+        msg: '当前有下载任务正在进行中'
+      });
+      return;
+    }
+    this.cancel = false;
+    this.busy = true;
+    let dir = data.dir;
+    let cgs = data.cgs;
+    let user_id = req.session.user.id;
+    res.send({ code: 0 });
+    try {
+      let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
+      if (!px_cookie) throw new Error('Cookie未设置');
+      let proxy = await baseService.getConfig(user_id, 'proxy');
+      pixivService.init(px_cookie, proxy);
+      let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
+      if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
+
+      this.message = '0 / ' + cgs.length;
+      for (let i = 0; i < cgs.length; i++) {
+        if (this.cancel) break;
+        await this.download(user_id, dir, cgs[i], i, cgs.length, zip_cg);
+        this.message = (i + 1) + ' / ' + cgs.length;
+      }
+    } catch (err) {
+      this.logger.error(err.message, err);
+    } finally {
+      this.cancel = false;
+      this.busy = false;
+    }
+  }
+
+  async download(user_id, dir, id, pointer, total, zip_cg) {
     let files = [];
     let referer = 'https://www.pixiv.net/artworks/' + id;
     let content = await pixivService.http_get(referer);
@@ -152,8 +188,8 @@ class PixivController {
             for (let i = 0; i < files.length; i++) {
               fs.renameSync(dir + files[i], temp_dir + files[i].substring(files[i].indexOf('_') + 1));
             }
-            await archiver.compress(temp_dir + '*', dir + id + '.zip');
-            fs.unlinkSync(temp_dir);
+            await archiver.compress(user_id, temp_dir + '*', dir + id + '.zip');
+            fs.rmdirSync(temp_dir);
           }
         }
         if (count >= zip_cg) files = [dir + id + '.zip'];
@@ -190,7 +226,7 @@ class PixivController {
     return files;
   }
 
-  cancel(req, res, data) {
+  stop(req, res, data) {
     this.cancel = true;
     res.send({ code: 0 });
   }

@@ -271,7 +271,7 @@ export default {
       this.showPanel = false;
     },
     async create() {
-      if (explorer.zipFile || (this.path === '' && explorer.seperator === '\\')) return;
+      if (!this.operatable()) return;
       let name = window.prompt('请输入名称：');
       if (!name) return;
       try {
