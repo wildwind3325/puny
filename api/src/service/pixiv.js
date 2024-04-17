@@ -2,6 +2,7 @@ var http = require('http');
 var http2 = require('http2');
 var tls = require('tls');
 
+var baseService = require('../service/base');
 var DB = require('../dao/db');
 
 class PixivService {
@@ -186,6 +187,20 @@ class PixivService {
     let artist = await db.findOne('select * from "artist" where "user_id" = :user_id and "px_id" = :id', {
       user_id: user_id,
       id: id
+    });
+    return artist;
+  }
+
+  async parseArtist(user_id, dir, seperator) {
+    let base_dir = await baseService.getConfig(user_id, 'base_dir');
+    if (dir.length <= base_dir.length) return null;
+    let arr = dir.substring(base_dir.length).split(seperator);
+    if (arr.length < 2) return null;
+    let db = new DB();
+    let artist = await db.findOne('select * from "artist" where "user_id" = :user_id and "name" = :name and "rating" = :rating', {
+      user_id: user_id,
+      name: arr[1],
+      rating: parseInt(arr[0])
     });
     return artist;
   }

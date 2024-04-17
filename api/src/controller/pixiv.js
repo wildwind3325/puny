@@ -113,6 +113,57 @@ class PixivController {
     }
   }
 
+  async renew(req, res, data) {
+    if (this.busy) {
+      res.send({
+        code: 1,
+        msg: '当前有下载任务正在进行中'
+      });
+      return;
+    }
+    this.cancel = false;
+    this.busy = true;
+    let dir = data.dir;
+    let user_id = req.session.user.id;
+    res.send({ code: 0 });
+    try {
+      let base_dir = await baseService.getConfig(user_id, 'base_dir');
+      if (!base_dir) throw new Error('根路径未设置');
+      let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
+      if (!px_cookie) throw new Error('Cookie未设置');
+      let proxy = await baseService.getConfig(user_id, 'proxy');
+      pixivService.init(px_cookie, proxy);
+      let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
+      if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
+
+      let artist = await pixivService.parseArtist(user_id, dir, this.seperator);
+      let profile = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/user/' + artist.px_id + '/profile/all'));
+      let cgs = [];
+      let px_updated_to = parseInt(artist.px_updated_to);
+      for (let key in profile.body.illusts) {
+        let val = parseInt(key);
+        if (val > px_updated_to) cgs.push(parseInt(key));
+      }
+      for (let key in profile.body.manga) {
+        let val = parseInt(key);
+        if (val > px_updated_to) cgs.push(parseInt(key));
+      }
+      let download_dir = base_dir + artist.rating.toString().padStart(2, '0') + this.seperator + artist.name + this.seperator;
+      if (fs.existsSync(download_dir + 'pixiv' + this.seperator)) download_dir += 'pixiv' + this.seperator;
+      this.message = '0 / ' + cgs.length;
+      for (let i = 0; i < cgs.length; i++) {
+        if (this.cancel) break;
+        await this.download(user_id, download_dir, cgs[i], i, cgs.length, zip_cg);
+        this.message = (i + 1) + ' / ' + cgs.length;
+      }
+    } catch (err) {
+      this.logger.error(err.message, err);
+    } finally {
+      this.cancel = false;
+      this.busy = false;
+    }
+  }
+
   async batch(req, res, data) {
     if (this.busy) {
       res.send({
