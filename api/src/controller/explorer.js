@@ -51,6 +51,15 @@ class ExplorerController {
           } catch (err) { }
         }
       }
+      let exp = /^(\d+)(_\d+)?\..+$/;
+      files.sort((a, b) => {
+        if (exp.test(a.name) && exp.test(b.name)) {
+          let m = parseInt(exp.exec(a.name)[1]);
+          let n = parseInt(exp.exec(b.name)[1]);
+          return m - n;
+        }
+        return a.name.localeCompare(b.name, 'zh');
+      });
     }
     res.send({
       code: 0,
