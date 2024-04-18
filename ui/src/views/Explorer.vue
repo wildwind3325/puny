@@ -59,9 +59,9 @@
     <div style="padding: 0px 16px; position: relative;">
       <van-space>
         <van-button type="warning" size="small" @click="switchScaleMode">{{ scaleMode }}</van-button>
-        <van-button type="success" size="small" @click="toPrev">上一张</van-button>
+        <van-button type="success" size="small" icon="arrow-left" @click="toPrev"></van-button>
         <van-button type="default" size="small">{{ pointer + ' / ' + images.length }}</van-button>
-        <van-button type="success" size="small" @click="toNext">下一张</van-button>
+        <van-button type="success" size="small" icon="arrow" @click="toNext"></van-button>
         <van-button v-show="operatable() && current" type="danger" size="small" @click="removeImage">删除</van-button>
       </van-space>
       <div style="line-height: 32px; color: #969799; position: absolute; right: 16px; top: 0px; font-size: 12px;">

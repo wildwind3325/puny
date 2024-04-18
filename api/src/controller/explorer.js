@@ -27,7 +27,7 @@ class ExplorerController {
     let folders = [];
     let files = [];
     if (process.platform.startsWith('win') && data.dirRoute.length === 1) {
-      let stdout = cp.execSync('wmic logicaldisk get name').toString();
+      let stdout = cp.execSync('wmic logicaldisk get name', { windowsHide: true }).toString();
       folders = stdout.split('\r\r\n')
         .filter(value => /[A-Za-z]:/.test(value))
         .map(value => value.trim());
