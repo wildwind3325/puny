@@ -62,7 +62,7 @@
         <van-button type="success" size="small" icon="arrow-left" @click="toPrev"></van-button>
         <van-button type="default" size="small">{{ pointer + ' / ' + images.length }}</van-button>
         <van-button type="success" size="small" icon="arrow" @click="toNext"></van-button>
-        <van-button v-show="operatable() && current" type="danger" size="small" @click="removeImage">删除</van-button>
+        <van-button type="danger" size="small" @click="removeImage">删除</van-button>
       </van-space>
       <div style="line-height: 32px; color: #969799; position: absolute; right: 16px; top: 0px; font-size: 12px;">
         <span>{{ current_size }}</span>
@@ -462,6 +462,7 @@ export default {
       explorer.clear(true);
     },
     removeImage() {
+      if (!this.operatable() || !this.current) return;
       for (let i = explorer.folders.length; i < this.items.length; i++) {
         if (this.items[i].name === this.current) {
           this.remove(i);
