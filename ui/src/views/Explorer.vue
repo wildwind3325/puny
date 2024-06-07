@@ -225,7 +225,7 @@ export default {
           explorer.zipRoute = newZipRoute;
           this.updatePath();
           if (this.viewMode === '预览') {
-            this.viewMode = '列表';
+            this.switchViewMode();
           }
         }
         explorer.folders = res.data.data.folders;
@@ -481,7 +481,6 @@ export default {
       }
     },
     toPointer(item) {
-      this.viewMode = '预览';
       if (this.current === item.name) return;
       this.targetItem = item.name;
       for (let i = 0; i < this.images.length; i++) {
@@ -491,6 +490,7 @@ export default {
         }
       }
       explorer.clear(true);
+      this.switchViewMode();
     },
     touchStart(event) {
       if (!explorer.image || this.scaleMode === '自动1') return;
