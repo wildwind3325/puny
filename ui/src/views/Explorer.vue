@@ -1,62 +1,62 @@
 <template>
-  <van-nav-bar :title="current ? current : '文件'" left-arrow @click-left="$router.back()" />
-  <div style="height: 8px;"></div>
-  <div style="padding: 0px 16px;">
-    <van-space>
-      <van-button type="default" size="small" @click="up">上一级</van-button>
-      <van-button type="primary" size="small" @click="create">创建</van-button>
-      <van-button type="success" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
-      <van-button type="warning" size="small" @click="showPanel = true">更多</van-button>
-    </van-space>
-    <van-popup v-model:show="showPanel" position="bottom">
-      <div class="toolbar">
-        <van-action-bar-icon icon="info-o" text="常用" />
-        <van-action-bar-button type="primary" text="刷新" class="van-action-bar-button--first"
-          @click="doAction('refresh')" />
-        <van-action-bar-button type="warning" text="复制" @click="doAction('copy')" />
-        <van-action-bar-button type="warning" text="剪切" @click="doAction('cut')" />
-        <van-action-bar-button type="success" text="粘贴" class="van-action-bar-button--last"
-          @click="doAction('paste')" />
-      </div>
-      <div class="toolbar">
-        <van-action-bar-icon icon="fire-o" text="下载" />
-        <van-action-bar-button type="primary" text="Pixiv" class="van-action-bar-button--first"
-          @click="doAction('pixiv')" />
-        <van-action-bar-button type="warning" text="Inkbunny" @click="doAction('inkbunny')" />
-        <van-action-bar-button type="success" text="Exhentai" class="van-action-bar-button--last"
-          @click="doAction('exhentai')" />
-      </div>
-    </van-popup>
-  </div>
-  <van-field label="路径" :label-width="40" v-model="path" readonly />
-  <div v-show="viewMode === '列表'" class="list-container">
-    <div v-for="(item, index) in items" :key="index" class="list-item">
-      <div style="height: 8px;"></div>
-      <div class="list-item-name">{{ item.fsize ? item.name : '[' + item.name + ']' }}</div>
-      <div style="height: 8px;"></div>
-      <div>
-        <van-button v-show="operatable()" type="default" size="small" :icon="item.checked ? 'success' : 'plus'"
-          style="margin-right: 5px;" @click="item.checked = !item.checked"></van-button>
-        <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
-        <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;"
-          @click="toPointer(item)">预览</van-button>
-        <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;"
-          @click="play(item)">播放</van-button>
-        <van-button v-show="operatable()" type="warning" size="small" style="margin-left: 5px;"
-          @click="rename(index)">重命名</van-button>
-        <van-button v-show="operatable()" type="danger" size="small" style="margin-left: 5px;"
-          @click="remove(index)">删除</van-button>
-      </div>
-      <div v-show="item.fsize" style="height: 8px;"></div>
-      <div v-show="item.fsize" style="display: flex;">
-        <div class="list-item-info" style="flex-grow: 1;">{{ item.fsize }}</div>
-        <div class="list-item-info">{{ item.ctime }}</div>
-      </div>
-      <div style="height: 8px; border-bottom: 1px solid #ebedf0;"></div>
+  <div class="container">
+    <van-nav-bar :title="current ? current : '文件'" left-arrow @click-left="$router.back()" />
+    <div style="height: 8px; flex-shrink: 0;"></div>
+    <div style="padding: 0px 16px;">
+      <van-space>
+        <van-button type="default" size="small" @click="up">上一级</van-button>
+        <van-button type="primary" size="small" @click="create">创建</van-button>
+        <van-button type="success" size="small" @click="switchViewMode">{{ viewMode }}</van-button>
+        <van-button type="warning" size="small" @click="showPanel = true">更多</van-button>
+      </van-space>
+      <van-popup v-model:show="showPanel" position="bottom">
+        <div class="toolbar">
+          <van-action-bar-icon icon="info-o" text="常用" />
+          <van-action-bar-button type="primary" text="刷新" class="van-action-bar-button--first"
+            @click="doAction('refresh')" />
+          <van-action-bar-button type="warning" text="复制" @click="doAction('copy')" />
+          <van-action-bar-button type="warning" text="剪切" @click="doAction('cut')" />
+          <van-action-bar-button type="success" text="粘贴" class="van-action-bar-button--last"
+            @click="doAction('paste')" />
+        </div>
+        <div class="toolbar">
+          <van-action-bar-icon icon="fire-o" text="下载" />
+          <van-action-bar-button type="primary" text="Pixiv" class="van-action-bar-button--first"
+            @click="doAction('pixiv')" />
+          <van-action-bar-button type="warning" text="Inkbunny" @click="doAction('inkbunny')" />
+          <van-action-bar-button type="success" text="Exhentai" class="van-action-bar-button--last"
+            @click="doAction('exhentai')" />
+        </div>
+      </van-popup>
     </div>
-  </div>
-  <div v-show="viewMode === '预览'">
-    <div style="padding: 0px 16px; position: relative;">
+    <van-field label="路径" :label-width="40" v-model="path" readonly style="flex-shrink: 0;" />
+    <div v-show="viewMode === '列表'" class="list-container">
+      <div v-for="(item, index) in items" :key="index" class="list-item">
+        <div style="height: 8px;"></div>
+        <div class="list-item-name">{{ item.fsize ? item.name : '[' + item.name + ']' }}</div>
+        <div style="height: 8px;"></div>
+        <div>
+          <van-button v-show="operatable()" type="default" size="small" :icon="item.checked ? 'success' : 'plus'"
+            style="margin-right: 5px;" @click="item.checked = !item.checked"></van-button>
+          <van-button type="success" size="small" @click="refresh(index)">打开</van-button>
+          <van-button v-show="canPreview(item)" type="primary" size="small" style="margin-left: 5px;"
+            @click="toPointer(item)">预览</van-button>
+          <van-button v-show="canPlay(item)" type="primary" size="small" style="margin-left: 5px;"
+            @click="play(item)">播放</van-button>
+          <van-button v-show="operatable()" type="warning" size="small" style="margin-left: 5px;"
+            @click="rename(index)">重命名</van-button>
+          <van-button v-show="operatable()" type="danger" size="small" style="margin-left: 5px;"
+            @click="remove(index)">删除</van-button>
+        </div>
+        <div v-show="item.fsize" style="height: 8px;"></div>
+        <div v-show="item.fsize" style="display: flex;">
+          <div class="list-item-info" style="flex-grow: 1;">{{ item.fsize }}</div>
+          <div class="list-item-info">{{ item.ctime }}</div>
+        </div>
+        <div style="height: 8px; border-bottom: 1px solid #ebedf0;"></div>
+      </div>
+    </div>
+    <div v-show="viewMode === '预览'" style="padding: 0px 16px; position: relative;">
       <van-space>
         <van-button type="warning" size="small" @click="switchScaleMode">{{ scaleMode }}</van-button>
         <van-button type="success" size="small" icon="arrow-left" @click="toPrev"></van-button>
@@ -68,9 +68,9 @@
         <span>{{ current_size }}</span>
       </div>
     </div>
-    <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight" class="canvas" @touchstart="touchStart"
-      @touchmove="touchMove" @touchend="touchEnd" @mousedown="mouseStart" @mousemove="mouseMove" @mouseup="mouseEnd"
-      @mouseout="mouseEnd"></canvas>
+    <canvas ref="canvas" v-show="viewMode === '预览'" :width="canvasWidth" :height="canvasHeight" class="canvas"
+      @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" @mousedown="mouseStart"
+      @mousemove="mouseMove" @mouseup="mouseEnd" @mouseout="mouseEnd"></canvas>
   </div>
   <Pixiv ref="pixiv" />
 </template>
@@ -113,10 +113,8 @@ export default {
       explorer.seperator = res.data.data;
       this.updatePath();
       await this.refresh();
-      this.canvasWidth = Math.floor(document.body.getBoundingClientRect().width);
-      this.canvasHeight = Math.floor(document.body.getBoundingClientRect().height) - 162;
+      window.addEventListener('resize', this.fixSize);
       this.context = this.$refs.canvas.getContext('2d');
-      explorer.dirty = true;
       this.updateTimer = setInterval(this.update, 50);
       this.paintTimer = setInterval(this.paint, 50);
     } catch (err) {
@@ -124,6 +122,7 @@ export default {
     }
   },
   beforeUnmount() {
+    window.removeEventListener('resize', this.fixSize);
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
       this.updateTimer = null;
@@ -134,6 +133,14 @@ export default {
     }
   },
   methods: {
+    fixSize() {
+      let rect = this.$refs.canvas.getBoundingClientRect();
+      if (this.viewMode === '预览' && rect.width > 0 && rect.height > 0) {
+        this.canvasWidth = Math.floor(rect.width);
+        this.canvasHeight = Math.floor(rect.height);
+        explorer.dirty = true;
+      }
+    },
     updatePath() {
       this.path = explorer.getPath() + explorer.getZipPath();
     },
@@ -428,6 +435,9 @@ export default {
     switchViewMode() {
       if (this.viewMode === '列表') {
         this.viewMode = '预览';
+        this.$nextTick(() => {
+          this.fixSize();
+        });
       } else {
         this.viewMode = '列表';
       }
@@ -586,6 +596,13 @@ export default {
 </script>
 
 <style scoped>
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .list-item {
   padding: 0px 16px;
 }
@@ -604,15 +621,15 @@ export default {
 }
 
 .list-container {
-  height: calc(100vh - 130px);
   overflow-x: hidden;
   overflow-y: scroll;
+  flex-grow: 1;
 }
 
 .canvas {
-  width: 100vw;
-  height: calc(100vh - 162px);
   display: block;
+  width: 100vw;
+  flex-grow: 1;
 }
 
 .toolbar {
