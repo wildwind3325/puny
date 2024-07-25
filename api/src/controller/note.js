@@ -2,7 +2,6 @@ var DB = require('../dao/db');
 
 class LoginController {
   constructor() {
-    this.rules = {};
   }
 
   async forum_list(req, res, data) {

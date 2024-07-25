@@ -5,7 +5,6 @@ var DB = require('../dao/db');
 
 class ArtistController {
   constructor() {
-    this.rules = {};
   }
 
   async list(req, res, data) {

@@ -1,6 +1,5 @@
 class EHController {
   constructor() {
-    this.rules = {};
   }
 }
 

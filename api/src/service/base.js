@@ -5,23 +5,21 @@ class BaseService {
     this.safeModules = ['login'];
   }
 
-  preProcess(req, anonymous) {
+  preProcess(req) {
     let data = Object.assign({}, req.query, req.body);
     let module = data._module;
     let action = data._action;
-    if (!/^[a-zA-Z0-9\.]+$/.test(module) || !/^[a-zA-Z0-9_]+$/.test(action)) {
+    if (!/^[a-zA-Z0-9\._]+$/.test(module) || !/^[a-zA-Z0-9_]+$/.test(action)) {
       return {
         code: 1,
         msg: '错误的请求'
       };
     }
-    if (anonymous !== true && this.safeModules.indexOf(module) < 0) {
-      if (!req.session.user) {
-        return {
-          code: -1,
-          msg: '尚未登录或登录已超时'
-        };
-      }
+    if (!req.session.user && this.safeModules.indexOf(module) < 0) {
+      return {
+        code: -1,
+        msg: '尚未登录或登录已超时'
+      };
     }
     module = module.replace(/\./g, '/');
     let controller, method;

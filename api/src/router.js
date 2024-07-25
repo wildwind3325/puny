@@ -7,26 +7,6 @@ var baseService = require('./service/base');
 var router = express.Router();
 var logger = log4js.getLogger();
 
-router.post('/anonymous', async function (req, res, next) {
-  try {
-    let result = baseService.preProcess(req, true);
-    if (result.code !== 0) {
-      res.send(result);
-    } else {
-      let controller = result.controller;
-      let method = result.method;
-      let data = result.data;
-      await method.call(controller, req, res, data);
-    }
-  } catch (err) {
-    logger.error(err.message, err);
-    res.send({
-      code: 1,
-      msg: '处理请求时发生异常'
-    });
-  }
-});
-
 router.post('/common', async function (req, res, next) {
   try {
     let result = baseService.preProcess(req);

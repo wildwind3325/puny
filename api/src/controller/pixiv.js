@@ -73,7 +73,7 @@ class PixivController {
             id: id,
             type: list[i].illustType,
             count: list[i].pageCount,
-            user_id: list[i].userId,
+            pixiv_id: list[i].userId,
             thumbnail: list[i].url
           });
         }
@@ -91,16 +91,16 @@ class PixivController {
           str += ',' + files[j];
         }
         if (this.cancel) break;
-        let artist = await pixivService.getArtist(user_id, cg.user_id);
+        let artist = await pixivService.getArtist(user_id, cg.pixiv_id);
         if (artist) {
-          fs.appendFileSync(dir + 'update.log', '1,' + cg.user_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
+          fs.appendFileSync(dir + 'update.log', '1,' + cg.pixiv_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
           await db.update('artist', {
             id: artist.id,
             px_updated_to: cg.id,
             updated_at: new Date().format('yyyy-MM-dd HH:mm:ss')
           })
         } else {
-          fs.appendFileSync(dir + 'update.log', '0,' + cg.user_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
+          fs.appendFileSync(dir + 'update.log', '0,' + cg.pixiv_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
         }
         await baseService.setConfig(user_id, 'px_update', cg.id);
         this.message = (i + 1) + ' / ' + cgs.length;
@@ -110,6 +110,45 @@ class PixivController {
     } finally {
       this.cancel = false;
       this.busy = false;
+    }
+  }
+
+  async apply(req, res, data) {
+    if (this.busy) {
+      res.send({
+        code: 1,
+        msg: '当前有下载任务正在进行中'
+      });
+      return;
+    }
+    try {
+      let user_id = req.session.user.id;
+      let base_dir = await baseService.getConfig(user_id, 'base_dir');
+      if (!base_dir) throw new Error('根路径未设置');
+      let dir = base_dir + 'update' + this.seperator;
+      let file = dir + 'update.log';
+      let lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\r\n');
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (!line) break;
+        let arr = line.split(',');
+        if (arr[0] === '0') continue;
+        let pixiv_id = arr[1];
+        let artist = await pixivService.getArtist(user_id, pixiv_id);
+        if (!artist) continue;
+        let download_dir = base_dir + artist.rating.toString().padStart(2, '0') + this.seperator + artist.name + this.seperator;
+        if (fs.existsSync(download_dir + 'pixiv' + this.seperator)) download_dir += 'pixiv' + this.seperator;
+        for (let j = 3; j < arr.length; j++) {
+          if (!arr[j]) break;
+          fs.renameSync(dir + arr[j], download_dir + arr[j]);
+        }
+      }
+      res.send({ code: 0 });
+    } catch (err) {
+      res.send({
+        code: 1,
+        msg: err.message
+      });
     }
   }
 

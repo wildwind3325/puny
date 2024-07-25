@@ -4,7 +4,12 @@
       <div>
         <van-space>
           <van-button type="primary" size="small" :disabled="busy" @click="update">更新</van-button>
+          <van-button type="warning" size="small" :disabled="busy" @click="apply">应用</van-button>
           <van-button type="success" size="small" :disabled="busy" @click="renew">同步</van-button>
+        </van-space>
+      </div>
+      <div style="margin-top: 10px;">
+        <van-space>
           <van-switch v-model="busy" disabled />
           <van-button type="warning" size="small">{{ status }}</van-button>
           <van-button type="danger" size="small" :disabled="!busy" @click="cancel">停止</van-button>
@@ -60,6 +65,18 @@ export default {
     async update() {
       try {
         let res = await request.post('/api/common?_module=pixiv&_action=update');
+        if (res.data.code !== 0) {
+          common.notify('danger', '提交失败：' + res.data.msg);
+        } else {
+          common.notify('success', '提交成功');
+        }
+      } catch (err) {
+        common.notify('danger', '提交失败：' + err.message);
+      }
+    },
+    async apply() {
+      try {
+        let res = await request.post('/api/common?_module=pixiv&_action=apply');
         if (res.data.code !== 0) {
           common.notify('danger', '提交失败：' + res.data.msg);
         } else {

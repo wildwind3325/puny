@@ -18,10 +18,6 @@
 import request from '../util/request';
 export default {
   name: 'Home',
-  data() {
-    return {
-    };
-  },
   methods: {
     async logout() {
       try {

@@ -2,7 +2,6 @@ var DB = require('../dao/db');
 
 class PersonController {
   constructor() {
-    this.rules = {};
   }
 
   async list(req, res, data) {
