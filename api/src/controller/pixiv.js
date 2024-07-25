@@ -6,7 +6,7 @@ var archiver = require('../util/archiver');
 var baseService = require('../service/base');
 var DB = require('../dao/db');
 var file = require('../api/file');
-var pixivService = require('../service/pixiv');
+var http20 = require('../util/http20');
 var util = require('../util/util');
 
 class PixivController {
@@ -53,7 +53,7 @@ class PixivController {
       let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
       if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      pixivService.init(px_cookie, proxy);
+      let { host, port } = this.parseProxy(proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
@@ -62,7 +62,10 @@ class PixivController {
       while (true) {
         if (this.cancel) break;
         let url = 'https://www.pixiv.net/ajax/follow_latest/illust?mode=all&lang=zh&p=' + page;
-        let result = JSON.parse(await pixivService.http_get(url, { 'referer': 'https://www.pixiv.net/bookmark_new_illust.php?p=' + page }));
+        let result = JSON.parse(await http20.http_get(url, {
+          'cookie': px_cookie,
+          'referer': 'https://www.pixiv.net/bookmark_new_illust.php?p=' + page
+        }, host, port));
         if (result.error === true) throw new Error(result.message);
         let list = result.body.thumbnails.illust;
         for (let i = 0; i < list.length; i++) {
@@ -85,13 +88,13 @@ class PixivController {
       for (let i = 0; i < cgs.length; i++) {
         if (this.cancel) break;
         let cg = cgs[i];
-        let files = await this.download(user_id, dir, cg.id, i, cgs.length, zip_cg);
+        let files = await this.download(user_id, dir, cg.id, i, cgs.length, zip_cg, px_cookie, host, port);
         let str = '';
         for (let j = 0; j < files.length; j++) {
           str += ',' + files[j];
         }
         if (this.cancel) break;
-        let artist = await pixivService.getArtist(user_id, cg.pixiv_id);
+        let artist = await this.getArtist(user_id, cg.pixiv_id);
         if (artist) {
           fs.appendFileSync(dir + 'update.log', '1,' + cg.pixiv_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
           await db.update('artist', {
@@ -134,7 +137,7 @@ class PixivController {
         let arr = line.split(',');
         if (arr[0] === '0') continue;
         let pixiv_id = arr[1];
-        let artist = await pixivService.getArtist(user_id, pixiv_id);
+        let artist = await this.getArtist(user_id, pixiv_id);
         if (!artist) continue;
         let download_dir = base_dir + artist.rating.toString().padStart(2, '0') + this.seperator + artist.name + this.seperator;
         if (fs.existsSync(download_dir + 'pixiv' + this.seperator)) download_dir += 'pixiv' + this.seperator;
@@ -171,12 +174,14 @@ class PixivController {
       let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
       if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      pixivService.init(px_cookie, proxy);
+      let { host, port } = this.parseProxy(proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
-      let artist = await pixivService.parseArtist(user_id, dir, this.seperator);
-      let profile = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/user/' + artist.px_id + '/profile/all'));
+      let artist = await this.parseArtist(user_id, dir, this.seperator);
+      let profile = JSON.parse(await http20.http_get('https://www.pixiv.net/ajax/user/' + artist.px_id + '/profile/all', {
+        'cookie': px_cookie
+      }, host, port));
       let cgs = [];
       let px_updated_to = parseInt(artist.px_updated_to);
       for (let key in profile.body.illusts) {
@@ -192,7 +197,7 @@ class PixivController {
       this.message = '0 / ' + cgs.length;
       for (let i = 0; i < cgs.length; i++) {
         if (this.cancel) break;
-        await this.download(user_id, download_dir, cgs[i], i, cgs.length, zip_cg);
+        await this.download(user_id, download_dir, cgs[i], i, cgs.length, zip_cg, px_cookie, host, port);
         this.message = (i + 1) + ' / ' + cgs.length;
       }
     } catch (err) {
@@ -221,14 +226,14 @@ class PixivController {
       let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
       if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      pixivService.init(px_cookie, proxy);
+      let { host, port } = this.parseProxy(proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
       this.message = '0 / ' + cgs.length;
       for (let i = 0; i < cgs.length; i++) {
         if (this.cancel) break;
-        await this.download(user_id, dir, cgs[i], i, cgs.length, zip_cg);
+        await this.download(user_id, dir, cgs[i], i, cgs.length, zip_cg, px_cookie, host, port);
         this.message = (i + 1) + ' / ' + cgs.length;
       }
     } catch (err) {
@@ -239,10 +244,46 @@ class PixivController {
     }
   }
 
-  async download(user_id, dir, id, pointer, total, zip_cg) {
+  stop(req, res, data) {
+    this.cancel = true;
+    res.send({ code: 0 });
+  }
+
+  parseProxy(proxy) {
+    let arr = proxy.split('//')[1].split(':');
+    return {
+      host: arr[0],
+      port: parseInt(arr[1])
+    };
+  }
+
+  async getArtist(user_id, id) {
+    let db = new DB();
+    let artist = await db.findOne('select * from "artist" where "user_id" = :user_id and "px_id" = :id', {
+      user_id: user_id,
+      id: id
+    });
+    return artist;
+  }
+
+  async parseArtist(user_id, dir, seperator) {
+    let base_dir = await baseService.getConfig(user_id, 'base_dir');
+    if (dir.length <= base_dir.length) return null;
+    let arr = dir.substring(base_dir.length).split(seperator);
+    if (arr.length < 2) return null;
+    let db = new DB();
+    let artist = await db.findOne('select * from "artist" where "user_id" = :user_id and "name" = :name and "rating" = :rating', {
+      user_id: user_id,
+      name: arr[1],
+      rating: parseInt(arr[0])
+    });
+    return artist;
+  }
+
+  async download(user_id, dir, id, pointer, total, zip_cg, cookie, host, port) {
     let files = [];
     let referer = 'https://www.pixiv.net/artworks/' + id;
-    let content = await pixivService.http_get(referer);
+    let content = await http20.http_get(referer, { 'cookie': cookie }, host, port);
     let page = cheerio.load(content);
     let meta = JSON.parse(page('meta#meta-preload-data').attr('content'));
     let illust = meta.illust[id + ''].userIllusts[id + ''];
@@ -252,20 +293,29 @@ class PixivController {
         let url = meta.illust[id + ''].urls.original;
         let filename = id + file.getExtension(url);
         if (!fs.existsSync(dir + filename)) {
-          let buffer = await pixivService.http_data(url, { 'referer': referer });
+          let buffer = await http20.http_data(url, {
+            'cookie': cookie,
+            'referer': referer
+          }, host, port);
           fs.writeFileSync(dir + filename, buffer);
         }
         files.push(filename);
       } else {
         if (!fs.existsSync(dir + id + '.zip')) {
-          let data = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/illust/' + id + '/pages', { 'referer': referer }));
+          let data = JSON.parse(await http20.http_get('https://www.pixiv.net/ajax/illust/' + id + '/pages', {
+            'cookie': cookie,
+            'referer': referer
+          }, host, port));
           let len = Math.max(2, ((count - 1) + '').length);
           for (let i = 0; i < count; i++) {
             if (this.cancel) break;
             let url = data.body[i].urls.original;
             let filename = id + '_' + (i + '').padStart(len, '0') + file.getExtension(url);
             if (!fs.existsSync(dir + filename)) {
-              let buffer = await pixivService.http_data(url, { 'referer': referer });
+              let buffer = await http20.http_data(url, {
+                'cookie': cookie,
+                'referer': referer
+              }, host, port);
               fs.writeFileSync(dir + filename, buffer);
             }
             files.push(filename);
@@ -287,14 +337,20 @@ class PixivController {
     } else {
       let filename = id + '.zip';
       if (!fs.existsSync(dir + filename)) {
-        let data = JSON.parse(await pixivService.http_get('https://www.pixiv.net/ajax/illust/' + id + '/ugoira_meta', { 'referer': referer }));
+        let data = JSON.parse(await http20.http_get('https://www.pixiv.net/ajax/illust/' + id + '/ugoira_meta', {
+          'cookie': cookie,
+          'referer': referer
+        }, host, port));
         let str = '';
         for (let i = 0; i < data.body.frames.length; i++) {
           str += data.body.frames[i].file + ',' + data.body.frames[i].delay + '\r\n';
           fs.writeFileSync(dir + id + '.frames', str, { encoding: 'utf-8' });
         }
         let url = data.body.originalSrc ? data.body.originalSrc : data.body.src;
-        let headers = await pixivService.http_head(url, { 'referer': referer });
+        let headers = await http20.http_head(url, {
+          'cookie': cookie,
+          'referer': referer
+        }, host, port);
         let len = parseInt(headers['content-length']);
         let arr = [];
         let times = Math.floor(len / 300000);
@@ -303,10 +359,11 @@ class PixivController {
           let start = i * 300000;
           let end = (i + 1) * 300000 - 1;
           if (end >= len) end = len - 1;
-          let buffer = await pixivService.http_data(url, {
+          let buffer = await http20.http_data(url, {
+            'cookie': cookie,
             'referer': referer,
             'range': 'bytes=' + start + '-' + end
-          });
+          }, host, port);
           arr.push(buffer);
         }
         fs.writeFileSync(dir + filename, Buffer.concat(arr));
@@ -314,11 +371,6 @@ class PixivController {
       files.push(id + '.frames', filename);
     }
     return files;
-  }
-
-  stop(req, res, data) {
-    this.cancel = true;
-    res.send({ code: 0 });
   }
 }
 
