@@ -23,7 +23,7 @@ class PixivController {
       code: 0,
       data: {
         busy: this.busy,
-        message: this.message
+        msg: this.message
       }
     });
   }
@@ -32,7 +32,7 @@ class PixivController {
     if (this.busy) {
       res.send({
         code: 1,
-        msg: '当前有下载任务正在进行中'
+        msg: '当前有其他任务正在进行中'
       });
       return;
     }
@@ -41,6 +41,7 @@ class PixivController {
     this.message = '0 / 1';
     let user_id = req.session.user.id;
     res.send({ code: 0 });
+
     try {
       let db = new DB();
       let base_dir = await baseService.getConfig(user_id, 'base_dir');
@@ -53,7 +54,7 @@ class PixivController {
       let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
       if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      let { host, port } = this.parseProxy(proxy);
+      let { host, port } = util.parseProxy(proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
@@ -93,7 +94,6 @@ class PixivController {
         for (let j = 0; j < files.length; j++) {
           str += ',' + files[j];
         }
-        if (this.cancel) break;
         let artist = await this.getArtist(user_id, cg.pixiv_id);
         if (artist) {
           fs.appendFileSync(dir + 'update.log', '1,' + cg.pixiv_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
@@ -101,7 +101,7 @@ class PixivController {
             id: artist.id,
             px_updated_to: cg.id,
             updated_at: new Date().format('yyyy-MM-dd HH:mm:ss')
-          })
+          });
         } else {
           fs.appendFileSync(dir + 'update.log', '0,' + cg.pixiv_id + ',' + cg.id + str + '\r\n', { encoding: 'utf-8' });
         }
@@ -120,7 +120,7 @@ class PixivController {
     if (this.busy) {
       res.send({
         code: 1,
-        msg: '当前有下载任务正在进行中'
+        msg: '当前有其他任务正在进行中'
       });
       return;
     }
@@ -159,7 +159,7 @@ class PixivController {
     if (this.busy) {
       res.send({
         code: 1,
-        msg: '当前有下载任务正在进行中'
+        msg: '当前有其他任务正在进行中'
       });
       return;
     }
@@ -168,13 +168,14 @@ class PixivController {
     let dir = data.dir;
     let user_id = req.session.user.id;
     res.send({ code: 0 });
+
     try {
       let base_dir = await baseService.getConfig(user_id, 'base_dir');
       if (!base_dir) throw new Error('根路径未设置');
       let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
       if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      let { host, port } = this.parseProxy(proxy);
+      let { host, port } = util.parseProxy(proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
@@ -212,7 +213,7 @@ class PixivController {
     if (this.busy) {
       res.send({
         code: 1,
-        msg: '当前有下载任务正在进行中'
+        msg: '当前有其他任务正在进行中'
       });
       return;
     }
@@ -222,11 +223,12 @@ class PixivController {
     let cgs = data.cgs;
     let user_id = req.session.user.id;
     res.send({ code: 0 });
+
     try {
       let px_cookie = await baseService.getConfig(user_id, 'px_cookie');
       if (!px_cookie) throw new Error('Cookie未设置');
       let proxy = await baseService.getConfig(user_id, 'proxy');
-      let { host, port } = this.parseProxy(proxy);
+      let { host, port } = util.parseProxy(proxy);
       let zip_cg = parseInt(await baseService.getConfig(user_id, 'zip_cg'));
       if (isNaN(zip_cg) || zip_cg < 2) throw new Error('打包设置不正确');
 
@@ -247,14 +249,6 @@ class PixivController {
   stop(req, res, data) {
     this.cancel = true;
     res.send({ code: 0 });
-  }
-
-  parseProxy(proxy) {
-    let arr = proxy.split('//')[1].split(':');
-    return {
-      host: arr[0],
-      port: parseInt(arr[1])
-    };
   }
 
   async getArtist(user_id, id) {
@@ -332,7 +326,7 @@ class PixivController {
             fs.rmdirSync(temp_dir);
           }
         }
-        if (count >= zip_cg) files = [dir + id + '.zip'];
+        if (count >= zip_cg) files = [id + '.zip'];
       }
     } else {
       let filename = id + '.zip';

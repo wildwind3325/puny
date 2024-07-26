@@ -58,7 +58,7 @@ export default {
         let res = await request.post('/api/common?_module=pixiv&_action=info');
         if (res.data.code === 0) {
           this.busy = res.data.data.busy;
-          this.status = res.data.data.message;
+          this.status = res.data.data.msg;
         }
       } catch (err) { }
     },

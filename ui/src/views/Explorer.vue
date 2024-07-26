@@ -25,7 +25,7 @@
             @click="doAction('pixiv')" />
           <van-action-bar-button type="warning" text="Inkbunny" @click="doAction('inkbunny')" />
           <van-action-bar-button type="success" text="Exhentai" class="van-action-bar-button--last"
-            @click="doAction('exhentai')" />
+            @click="doAction('eh')" />
         </div>
       </van-popup>
     </div>
@@ -73,6 +73,7 @@
       @mousemove="mouseMove" @mouseup="mouseEnd" @mouseout="mouseEnd"></canvas>
   </div>
   <Pixiv ref="pixiv" />
+  <EH ref="eh" />
 </template>
 
 <script>
@@ -80,9 +81,10 @@ import common from '../components/common';
 import request from '../util/request';
 import explorer from '../api/explorer';
 import Pixiv from './Pixiv.vue';
+import EH from './EH.vue';
 export default {
   name: 'Explorer',
-  components: { Pixiv },
+  components: { Pixiv, EH },
   data() {
     return {
       showPanel: false,
@@ -271,6 +273,9 @@ export default {
           break;
         case 'pixiv':
           this.$refs.pixiv.show();
+          break;
+        case 'eh':
+          this.$refs.eh.show();
           break;
         default:
           break;

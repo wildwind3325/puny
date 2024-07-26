@@ -50,6 +50,13 @@ var util = {
     }
     return '';
   },
+  parseProxy(proxy) {
+    let arr = proxy.split('//')[1].split(':');
+    return {
+      host: arr[0],
+      port: parseInt(arr[1])
+    };
+  },
   uid() {
     return uuid.v4().replace(/-/g, '');
   }

@@ -1,14 +1,24 @@
-var axios = require('axios').default;
-var https = require('https');
+var request = require('request');
 
-const worker = axios.create({
+const worker = request.defaults({
+  rejectUnauthorized: false,
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
-  },
-  maxRedirects: 0,
-  httpsAgent: new https.Agent({
-    rejectUnauthorized: false
-  })
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0'
+  }
 });
 
-module.exports = worker;
+var http = {
+  request(options) {
+    return new Promise((resolve, reject) => {
+      worker(options, (error, response, body) => {
+        resolve({
+          error: error,
+          response: response,
+          body: body
+        });
+      });
+    });
+  }
+};
+
+module.exports = http;
